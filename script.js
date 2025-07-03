@@ -71,17 +71,17 @@ function showAuthMessage(message, isError = false) {
     }
 }
 
-// PERUBAHAN DI SINI UNTUK MEMASTIKAN HALAMAN TERSEMBUNYI DENGAN BENAR
+// === START PERUBAHAN DI FUNGSI showPage ===
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
-        // BARIS BARU: Pastikan juga display diset ke none agar tidak ada overlap visual
+        // BARIS DITAMBAHKAN/DIPASTIKAN: Sembunyikan semua halaman
         page.style.display = 'none'; 
     });
     const targetPageElement = document.getElementById(pageId + '-page');
     if (targetPageElement) {
         targetPageElement.classList.add('active');
-        // BARIS BARU: Pastikan halaman target ditampilkan
+        // BARIS DITAMBAHKAN/DIPASTIKAN: Tampilkan halaman yang dituju
         targetPageElement.style.display = 'block'; 
         // Tutup menu samping jika terbuka
         const sideMenu = document.getElementById('side-menu');
@@ -92,6 +92,7 @@ function showPage(pageId) {
         console.error(`Page with ID ${pageId}-page not found.`);
     }
 }
+// === END PERUBAHAN DI FUNGSI showPage ===
 
 // --- 4. Listener Status Autentikasi Firebase (`onAuthStateChanged`) ---
 auth.onAuthStateChanged(user => {
@@ -151,7 +152,9 @@ if (signupEmailButton) {
         auth.createUserWithEmailAndPassword(email, password)
             .then((userCredential) => {
                 console.log('User signed up:', userCredential.user);
-                // onAuthStateChanged akan menangani pengalihan halaman dan pemuatan data
+                // BARIS DITAMBAHKAN/DIPASTIKAN: Panggil showPage('home') dan pesan sukses
+                showAuthMessage('Pendaftaran berhasil! Selamat datang.', false); 
+                showPage('home'); 
             })
             .catch((error) => {
                 showAuthMessage(`Error Daftar: ${error.message}`, true);
@@ -175,7 +178,9 @@ if (loginEmailButton) {
         auth.signInWithEmailAndPassword(email, password)
             .then((userCredential) => {
                 console.log('User logged in:', userCredential.user);
-                // onAuthStateChanged akan menangani pengalihan halaman dan pemuatan data
+                // BARIS DITAMBAHKAN/DIPASTIKAN: Panggil showPage('home') dan pesan sukses
+                showAuthMessage('Login berhasil! Selamat datang.', false); 
+                showPage('home'); 
             })
             .catch((error) => {
                 showAuthMessage(`Error Masuk: ${error.message}`, true);
@@ -235,13 +240,15 @@ if (verifyOtpButton) {
             confirmationResult.confirm(code)
                 .then((result) => {
                     console.log('Phone OTP verified:', result.user);
+                    // BARIS DITAMBAHKAN/DIPASTIKAN: Panggil showPage('home') dan pesan sukses
+                    showAuthMessage('Verifikasi OTP berhasil! Selamat datang.', false); 
                     // Reset UI OTP
                     if (otpInputGroup) otpInputGroup.style.display = 'none';
                     if (verifyOtpButton) verifyOtpButton.style.display = 'none';
                     if (sendOtpButton) sendOtpButton.style.display = 'block';
                     if (authPhoneInput) authPhoneInput.value = '';
                     if (authOtpInput) authOtpInput.value = '';
-                    // onAuthStateChanged akan menangani pengalihan halaman dan pemuatan data
+                    showPage('home'); 
                 })
                 .catch((error) => {
                     showAuthMessage(`Error Verifikasi OTP: ${error.message}`, true);
@@ -416,7 +423,7 @@ function calculateSummary() {
     const currentBalance = totalIncome - totalExpense;
 
     if (totalIncomeEl) totalIncomeEl.textContent = formatCurrency(totalIncome);
-    if (totalExpenseEl) totalExpenseEl.textContent = formatCurrency(totalBalance);
+    if (totalExpenseEl) totalExpenseEl.textContent = formatCurrency(totalExpense);
     if (currentBalanceEl) {
         currentBalanceEl.textContent = formatCurrency(currentBalance);
         if (currentBalance < 0) {
@@ -714,10 +721,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // BARIS BARU: Pastikan semua halaman tersembunyi di awal
+    // === START PERUBAHAN DI DOMContentLoaded ===
+    // BARIS DITAMBAHKAN/DIPASTIKAN: Pastikan semua halaman tersembunyi di awal
     document.querySelectorAll('.page').forEach(page => {
         page.style.display = 'none'; 
     });
+    // === END PERUBAHAN DI DOMContentLoaded ===
 
     // --- Inisialisasi reCAPTCHA Verifier (PENTING untuk Autentikasi Telepon) ---
     // Dipindahkan ke sini agar `recaptchaContainer` pasti sudah ada di DOM
