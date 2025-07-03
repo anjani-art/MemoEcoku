@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MemoEcoKu</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#21D4FD">
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    </head>
+<body>
+    <div id="app-container">
+        <header>
+            <button id="menu-toggle" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
+            <h1>MemoEcoKu</h1>
+        </header>
+
+        <nav id="side-menu">
+            <button id="close-menu" aria-label="Close menu"><i class="fas fa-times"></i></button>
+            <ul>
+                <li><a href="#" data-page="home"><i class="fas fa-home"></i> Beranda</a></li>
+                <li><a href="#" data-page="notes"><i class="fas fa-sticky-note"></i> Catatan & Pengingat</a></li>
+                <li><a href="#" data-page="finance"><i class="fas fa-wallet"></i> Keuangan Berkelanjutan</a></li>
+                <li><a href="#" data-page="products"><i class="fas fa-leaf"></i> Saran Produk Go Green</a></li>
+                <li><a href="#" id="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </nav>
+
+        <main id="app-content">
+
+            <section id="auth-page" class="page">
+                <h2>Selamat Datang di MemoEcoKu</h2>
+                <p id="auth-status-message" class="status-message"></p>
+
+                <div class="auth-section">
+                    <h3>Login / Daftar dengan Email</h3>
+                    <input type="email" id="auth-email" placeholder="Email Anda" required>
+                    <input type="password" id="auth-password" placeholder="Password (min. 6 karakter)" required>
+                    <button id="login-email-button" class="btn primary-btn">Masuk dengan Email</button>
+                    <button id="signup-email-button" class="btn secondary-btn">Daftar dengan Email</button>
+                </div>
+
+                <div class="auth-section">
+                    <h3>Login / Daftar dengan Telepon</h3>
+                    <input type="tel" id="auth-phone" placeholder="Nomor Telepon (+628...)" required>
+                    <div id="recaptcha-container"></div> <button id="send-otp-button" class="btn primary-btn">Kirim OTP</button>
+
+                    <div id="otp-input-group" style="display: none;">
+                        <input type="text" id="auth-otp" placeholder="Kode OTP" required>
+                        <button id="verify-otp-button" class="btn secondary-btn">Verifikasi OTP</button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="home-page" class="page">
+                <h2>Beranda</h2>
+                <p>Selamat datang di MemoEcoKu! Aplikasi untuk mencatat, mengelola keuangan, dan menemukan produk ramah lingkungan.</p>
+
+                <div class="card-grid">
+                    <div class="card" data-page="notes">
+                        <i class="fas fa-sticky-note card-icon"></i>
+                        <h3>Catatan & Pengingat</h3>
+                        <p>Kelola catatan penting Anda.</p>
+                    </div>
+                    <div class="card" data-page="finance">
+                        <i class="fas fa-wallet card-icon"></i>
+                        <h3>Keuangan Berkelanjutan</h3>
+                        <p>Pantau pemasukan dan pengeluaran Anda.</p>
+                    </div>
+                    <div class="card" data-page="products">
+                        <i class="fas fa-leaf card-icon"></i>
+                        <h3>Saran Produk Go Green</h3>
+                        <p>Temukan produk ramah lingkungan.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="notes-page" class="page">
+                <div class="page-header">
+                    <button class="back-button" data-target="home"><i class="fas fa-arrow-left"></i></button>
+                    <h2>Catatan & Pengingat</h2>
+                </div>
+
+                <div class="input-group">
+                    <textarea id="note-text" placeholder="Tulis catatan baru Anda di sini..."></textarea>
+                    <button id="add-note-button" class="btn primary-btn">Tambah Catatan</button>
+                </div>
+
+                <h3>Catatan Disematkan</h3>
+                <div id="pinned-notes-container" class="notes-grid">
+                    <p id="empty-pinned-notes-message" class="empty-message" style="display: none;">Belum ada catatan yang disematkan.</p>
+                </div>
+
+                <h3>Catatan Lainnya</h3>
+                <div id="other-notes-container" class="notes-grid">
+                    <p id="empty-other-notes-message" class="empty-message" style="display: none;">Belum ada catatan lainnya.</p>
+                </div>
+            </section>
+
+            <section id="finance-page" class="page">
+                <div class="page-header">
+                    <button class="back-button" data-target="home"><i class="fas fa-arrow-left"></i></button>
+                    <h2>Keuangan Berkelanjutan</h2>
+                </div>
+
+                <div class="summary-card">
+                    <div>
+                        <h3>Total Pemasukan</h3>
+                        <p id="total-income" class="income">Rp 0</p>
+                    </div>
+                    <div>
+                        <h3>Total Pengeluaran</h3>
+                        <p id="total-expense" class="expense">Rp 0</p>
+                    </div>
+                    <div>
+                        <h3>Saldo Saat Ini</h3>
+                        <p id="current-balance" class="balance">Rp 0</p>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" id="transaction-description" placeholder="Deskripsi Transaksi" required>
+                    <input type="number" id="transaction-amount" placeholder="Jumlah" required>
+                    <select id="transaction-type">
+                        <option value="income">Pemasukan</option>
+                        <option value="expense">Pengeluaran</option>
+                    </select>
+                    <button id="add-transaction-button" class="btn primary-btn">Tambah Transaksi</button>
+                </div>
+
+                <h3>Riwayat Transaksi</h3>
+                <ul id="transaction-list">
+                    </ul>
+            </section>
+
+            <section id="products-page" class="page">
+                <div class="page-header">
+                    <button class="back-button" data-target="home"><i class="fas fa-arrow-left"></i></button>
+                    <h2>Saran Produk Go Green</h2>
+                </div>
+                <p>Jelajahi berbagai kategori produk ramah lingkungan.</p>
+                <div id="product-categories-grid" class="category-grid">
+                    </div>
+            </section>
+
+            <section id="product-list-page" class="page">
+                <div class="page-header">
+                    <button class="back-button" data-target="products"><i class="fas fa-arrow-left"></i></button>
+                    <h2 id="product-list-category-title"></h2>
+                </div>
+                <div id="product-list-container" class="product-list">
+                    </div>
+            </section>
+
+            <section id="product-detail-page" class="page">
+                <div class="page-header">
+                    <button class="back-button" data-target="product-list"><i class="fas fa-arrow-left"></i></button>
+                    <h2>Detail Produk</h2>
+                </div>
+                <div id="product-detail-content" class="product-detail">
+                    </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    </body>
+</html>
