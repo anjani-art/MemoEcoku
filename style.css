@@ -134,15 +134,26 @@ header h1 {
     flex-grow: 1; /* Memungkinkan konten mengisi sisa ruang */
     padding: 20px;
     overflow-y: auto; /* Agar konten bisa discroll jika melebihi tinggi */
+    position: relative; /* Penting untuk penempatan .page dengan absolute */
 }
 
 .page {
     display: none; /* Sembunyikan semua halaman secara default */
-    animation: fadeIn 0.5s ease-out; /* Animasi saat halaman muncul */
+    animation: none; /* Hapus animasi saat disembunyikan */
+    position: absolute; /* BARU: Penting untuk menumpuk halaman dengan benar */
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100%; /* Gunakan min-height */
+    overflow-y: auto;
+    box-sizing: border-box;
 }
 
 .page.active {
     display: block; /* Tampilkan halaman yang aktif */
+    animation: fadeIn 0.5s ease-out; /* Terapkan animasi hanya saat aktif */
+    position: relative; /* BARU: Agar halaman aktif mengambil ruang normal */
+    z-index: 1; /* Pastikan halaman aktif di atas yang lain */
 }
 
 /* Animasi fade in */
@@ -240,12 +251,16 @@ textarea {
 
 /* --- Halaman Autentikasi (Login/Daftar) --- */
 #auth-page {
-    display: flex;
+    /* Pindahkan display: flex; ke #auth-page.active untuk menghindari konflik */
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: calc(100vh - 60px); /* Sesuaikan tinggi agar centered */
     text-align: center;
+}
+/* BARU: Terapkan display: flex; hanya saat auth-page aktif */
+#auth-page.active {
+    display: flex;
 }
 
 .auth-section {
