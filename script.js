@@ -71,13 +71,18 @@ function showAuthMessage(message, isError = false) {
     }
 }
 
+// PERUBAHAN DI SINI UNTUK MEMASTIKAN HALAMAN TERSEMBUNYI DENGAN BENAR
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
+        // BARIS BARU: Pastikan juga display diset ke none agar tidak ada overlap visual
+        page.style.display = 'none'; 
     });
     const targetPageElement = document.getElementById(pageId + '-page');
     if (targetPageElement) {
         targetPageElement.classList.add('active');
+        // BARIS BARU: Pastikan halaman target ditampilkan
+        targetPageElement.style.display = 'block'; 
         // Tutup menu samping jika terbuka
         const sideMenu = document.getElementById('side-menu');
         if (sideMenu) {
@@ -411,7 +416,7 @@ function calculateSummary() {
     const currentBalance = totalIncome - totalExpense;
 
     if (totalIncomeEl) totalIncomeEl.textContent = formatCurrency(totalIncome);
-    if (totalExpenseEl) totalExpenseEl.textContent = formatCurrency(totalExpense);
+    if (totalExpenseEl) totalExpenseEl.textContent = formatCurrency(totalBalance);
     if (currentBalanceEl) {
         currentBalanceEl.textContent = formatCurrency(currentBalance);
         if (currentBalance < 0) {
@@ -708,6 +713,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         });
     }
+
+    // BARIS BARU: Pastikan semua halaman tersembunyi di awal
+    document.querySelectorAll('.page').forEach(page => {
+        page.style.display = 'none'; 
+    });
 
     // --- Inisialisasi reCAPTCHA Verifier (PENTING untuk Autentikasi Telepon) ---
     // Dipindahkan ke sini agar `recaptchaContainer` pasti sudah ada di DOM
