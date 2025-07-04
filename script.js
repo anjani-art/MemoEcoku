@@ -74,6 +74,12 @@ const productListContainer = document.getElementById('product-list-container');
 const productListCategoryTitle = document.getElementById('product-list-category-title');
 const productDetailContent = document.getElementById('product-detail-content');
 
+// --- Variabel untuk DOM Menu Samping (DEKLARASI GLOBAL) ---
+// Ini penting agar elemen dapat diakses dari fungsi manapun.
+const menuToggle = document.getElementById('menu-toggle');
+const closeMenu = document.getElementById('close-menu');
+const sideMenu = document.getElementById('side-menu');
+
 
 // --- 3. Fungsi Utility Aplikasi ---
 function showAuthMessage(message, isError = false) {
@@ -861,19 +867,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Event listener untuk tombol toggle menu samping ---
-    const menuToggle = document.getElementById('menu-toggle');
-    const closeMenu = document.getElementById('close-menu');
-    const sideMenu = document.getElementById('side-menu');
-
+    // Pastikan menuToggle, closeMenu, dan sideMenu sudah dideklarasikan di bagian variabel global.
+    // JIKA ANDA MELIHAT BARIS 'const ... = document.getElementById(...);' DI SINI, HARAP HAPUS BARIS TERSEBUT.
     if (menuToggle) {
         menuToggle.addEventListener('click', () => {
-            if (sideMenu) sideMenu.classList.add('active');
+            console.log('Tombol menu toggle telah diklik!'); // Debugging: pastikan klik terdeteksi
+            if (sideMenu) {
+                sideMenu.classList.add('active'); // KODE YANG BENAR: 'add' untuk membuka
+                console.log('Class "active" ditambahkan ke side-menu.'); // Debugging: konfirmasi class
+            } else {
+                console.log('Elemen side-menu tidak ditemukan di JS!'); // Debugging: pesan jika elemen tidak ada
+            }
         });
     }
 
     if (closeMenu) {
         closeMenu.addEventListener('click', () => {
-            if (sideMenu) sideMenu.classList.remove('active');
+            if (sideMenu) {
+                sideMenu.classList.remove('active');
+                console.log('Class "active" dihapus dari side-menu.'); // Debugging: konfirmasi tutup
+            }
         });
     }
 
