@@ -34,33 +34,36 @@ const authOtpInput = document.getElementById('auth-otp');
 const verifyOtpButton = document.getElementById('verify-otp-button');
 const authStatusMessage = document.getElementById('auth-status-message'); // Untuk pesan status login/error
 
-// Elemen UI Halaman Notes
-const noteText = document.getElementById('note-text');
+// BARU: Elemen untuk pemilihan metode autentikasi
+const showEmailAuthButton = document.getElementById('show-email-auth');
+const showPhoneAuthButton = document.getElementById('show-phone-auth');
+const emailAuthSubmenu = document.getElementById('email-auth-submenu');
+const phoneAuthSubmenu = document.getElementById('phone-auth-submenu');
+const userDisplayName = document.getElementById('user-display-name'); // Tambahkan ini untuk display nama user
+
+// Elemen UI Catatan
 const addNoteButton = document.getElementById('add-note-button');
+const noteTextInput = document.getElementById('note-text');
 const pinnedNotesContainer = document.getElementById('pinned-notes-container');
 const otherNotesContainer = document.getElementById('other-notes-container');
 const emptyPinnedNotesMessage = document.getElementById('empty-pinned-notes-message');
 const emptyOtherNotesMessage = document.getElementById('empty-other-notes-message');
-let notes = []; // Deklarasi awal, akan diisi oleh loadUserData
 
-// Elemen UI Halaman Keuangan
-const totalIncomeEl = document.getElementById('total-income');
-const totalExpenseEl = document.getElementById('total-expense');
-const currentBalanceEl = document.getElementById('current-balance');
+// Elemen UI Keuangan Berkelanjutan
 const transactionDescriptionInput = document.getElementById('transaction-description');
 const transactionAmountInput = document.getElementById('transaction-amount');
 const transactionTypeSelect = document.getElementById('transaction-type');
 const addTransactionButton = document.getElementById('add-transaction-button');
-const transactionList = document.getElementById('transaction-list');
-let transactions = []; // Deklarasi awal, akan diisi oleh loadUserData
+const transactionListUl = document.getElementById('transaction-list');
+const totalIncomeDisplay = document.getElementById('total-income');
+const totalExpenseDisplay = document.getElementById('total-expense');
+const currentBalanceDisplay = document.getElementById('current-balance');
 
-// Elemen UI Halaman Produk
+// Elemen UI Produk Go Green
 const productCategoriesGrid = document.getElementById('product-categories-grid');
 const productListContainer = document.getElementById('product-list-container');
 const productListCategoryTitle = document.getElementById('product-list-category-title');
 const productDetailContent = document.getElementById('product-detail-content');
-// Home category cards (perhatikan ID atau kelas yang digunakan di HTML)
-const homeCategoryCards = document.querySelectorAll('#home-page .card');
 
 
 // --- 3. Fungsi Utility Aplikasi ---
@@ -71,19 +74,15 @@ function showAuthMessage(message, isError = false) {
     }
 }
 
-// === START PERUBAHAN DI FUNGSI showPage ===
 function showPage(pageId) {
     document.querySelectorAll('.page').forEach(page => {
         page.classList.remove('active');
-        // BARIS DITAMBAHKAN/DIPASTIKAN: Sembunyikan semua halaman
-        page.style.display = 'none'; 
+        page.style.display = 'none';
     });
     const targetPageElement = document.getElementById(pageId + '-page');
     if (targetPageElement) {
         targetPageElement.classList.add('active');
-        // BARIS DITAMBAHKAN/DIPASTIKAN: Tampilkan halaman yang dituju
-        targetPageElement.style.display = 'block'; 
-        // Tutup menu samping jika terbuka
+        targetPageElement.style.display = 'block';
         const sideMenu = document.getElementById('side-menu');
         if (sideMenu) {
             sideMenu.classList.remove('active');
@@ -92,13 +91,39 @@ function showPage(pageId) {
         console.error(`Page with ID ${pageId}-page not found.`);
     }
 }
-// === END PERUBAHAN DI FUNGSI showPage ===
+
+// BARU: Fungsi untuk menampilkan submenu autentikasi tertentu
+function showAuthSubmenu(submenuId) {
+    // Sembunyikan semua submenu terlebih dahulu
+    document.querySelectorAll('.auth-submenu').forEach(submenu => {
+        submenu.classList.remove('active');
+        submenu.style.display = 'none'; // Pastikan disembunyikan secara visual
+    });
+
+    // Sembunyikan juga tombol pilihan autentikasi
+    if (showEmailAuthButton) showEmailAuthButton.style.display = 'none';
+    if (showPhoneAuthButton) showPhoneAuthButton.style.display = 'none';
+
+
+    const targetSubmenu = document.getElementById(submenuId);
+    if (targetSubmenu) {
+        targetSubmenu.classList.add('active');
+        targetSubmenu.style.display = 'block'; // Tampilkan submenu yang dituju
+    }
+}
+
 
 // --- 4. Listener Status Autentikasi Firebase (`onAuthStateChanged`) ---
 auth.onAuthStateChanged(user => {
     if (user) {
         currentUser = user;
         console.log('User signed in:', user.email || user.phoneNumber, 'UID:', user.uid);
+        
+        // Tampilkan nama user di beranda
+        if (userDisplayName) {
+            userDisplayName.textContent = user.email ? user.email.split('@')[0] : (user.phoneNumber || 'Pengguna');
+        }
+
         showAuthMessage(`Selamat datang, ${user.email || user.phoneNumber || 'Pengguna'}!`, false);
         showPage('home'); // Arahkan ke halaman utama setelah login
         loadUserData(currentUser.uid); // Muat data user
@@ -108,86 +133,67 @@ auth.onAuthStateChanged(user => {
         showPage('auth'); // Arahkan ke halaman autentikasi jika belum login
         showAuthMessage('Silakan masuk atau daftar.', false);
         clearUserData(); // Bersihkan data lokal saat logout
+
+        // BARU: Tampilkan tombol pilihan autentikasi dan submenu default (misal email)
+        if (showEmailAuthButton) showEmailAuthButton.style.display = 'block';
+        if (showPhoneAuthButton) showPhoneAuthButton.style.display = 'block';
+        showAuthSubmenu('email-auth-submenu'); // Tampilkan form email secara default
     }
 });
 
-// --- 5. Inisialisasi reCAPTCHA Verifier (PENTING untuk Autentikasi Telepon) ---
-// Ini harus dipanggil saat DOM sudah siap, di dalam DOMContentLoaded
-// Pastikan recaptchaContainer ada di index.html
-if (recaptchaContainer) {
-    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(recaptchaContainer, {
-        'size': 'invisible',
-        'callback': (response) => {
-            // reCAPTCHA berhasil diselesaikan
-            console.log('reCAPTCHA solved.');
-        },
-        'expired-callback': () => {
-            showAuthMessage('Verifikasi reCAPTCHA kedaluwarsa. Coba lagi.', true);
-            window.recaptchaVerifier.render().then(function(widgetId) {
-                grecaptcha.reset(widgetId);
-            });
-        }
-    });
+
+// --- 5. Fungsi Autentikasi ---
+async function signupWithEmail() {
+    const email = authEmailInput.value;
+    const password = authPasswordInput.value;
+    if (!email || !password) {
+        showAuthMessage('Email dan password harus diisi.', true);
+        return;
+    }
+    if (password.length < 6) {
+        showAuthMessage('Password minimal 6 karakter.', true);
+        return;
+    }
+    try {
+        showAuthMessage('Mendaftar...', false);
+        await auth.createUserWithEmailAndPassword(email, password);
+        // User created, onAuthStateChanged akan handle redirect
+    } catch (error) {
+        showAuthMessage(`Error Daftar: ${error.message}`, true);
+        console.error('Signup Error:', error);
+    }
 }
 
-
-// --- 6. Event Listener untuk Tombol-tombol Autentikasi ---
-
-// Daftar dengan Email/Password
-if (signupEmailButton) {
-    signupEmailButton.addEventListener('click', () => {
-        const email = authEmailInput.value;
-        const password = authPasswordInput.value;
-
-        if (!email || !password) {
-            showAuthMessage('Email dan password tidak boleh kosong.', true);
-            return;
-        }
-        if (password.length < 6) {
-            showAuthMessage('Password minimal 6 karakter.', true);
-            return;
-        }
-
-        showAuthMessage('Mendaftarkan akun...', false);
-        auth.createUserWithEmailAndPassword(email, password)
-            .then((userCredential) => {
-                console.log('User signed up:', userCredential.user);
-                // BARIS DITAMBAHKAN/DIPASTIKAN: Panggil showPage('home') dan pesan sukses
-                showAuthMessage('Pendaftaran berhasil! Selamat datang.', false); 
-                showPage('home'); 
-            })
-            .catch((error) => {
-                showAuthMessage(`Error Daftar: ${error.message}`, true);
-                console.error('Signup Error:', error);
-            });
-    });
+async function loginWithEmail() {
+    const email = authEmailInput.value;
+    const password = authPasswordInput.value;
+    if (!email || !password) {
+        showAuthMessage('Email dan password harus diisi.', true);
+        return;
+    }
+    try {
+        showAuthMessage('Masuk...', false);
+        await auth.signInWithEmailAndPassword(email, password);
+        // User signed in, onAuthStateChanged akan handle redirect
+    } catch (error) {
+        showAuthMessage(`Error Masuk: ${error.message}`, true);
+        console.error('Login Error:', error);
+    }
 }
 
-// Masuk dengan Email/Password
-if (loginEmailButton) {
-    loginEmailButton.addEventListener('click', () => {
-        const email = authEmailInput.value;
-        const password = authPasswordInput.value;
-
-        if (!email || !password) {
-            showAuthMessage('Email dan password tidak boleh kosong.', true);
-            return;
-        }
-
-        showAuthMessage('Masuk ke akun...', false);
-        auth.signInWithEmailAndPassword(email, password)
-            .then((userCredential) => {
-                console.log('User logged in:', userCredential.user);
-                // BARIS DITAMBAHKAN/DIPASTIKAN: Panggil showPage('home') dan pesan sukses
-                showAuthMessage('Login berhasil! Selamat datang.', false); 
-                showPage('home'); 
-            })
-            .catch((error) => {
-                showAuthMessage(`Error Masuk: ${error.message}`, true);
-                console.error('Login Error:', error);
-            });
-    });
-}
+// Autentikasi Telepon - Inisialisasi reCAPTCHA
+window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(recaptchaContainer, {
+    'size': 'normal', // atau 'invisible' jika ingin otomatis
+    'callback': (response) => {
+        // reCAPTCHA solved, allow signInWithPhoneNumber.
+        // showAuthMessage('reCAPTCHA terverifikasi. Siap kirim OTP.', false);
+    },
+    'expired-callback': () => {
+        // Response expired. Ask user to solve reCAPTCHA again.
+        showAuthMessage('Verifikasi reCAPTCHA kadaluarsa. Coba lagi.', true);
+    }
+}, auth);
+window.recaptchaVerifier.rendered = false; // Flag untuk melacak apakah sudah dirender
 
 // Autentikasi Telepon - Kirim OTP
 if (sendOtpButton) {
@@ -228,288 +234,351 @@ if (sendOtpButton) {
 
 // Autentikasi Telepon - Verifikasi OTP
 if (verifyOtpButton) {
-    verifyOtpButton.addEventListener('click', () => {
-        const code = authOtpInput.value.trim();
-        if (!code) {
+    verifyOtpButton.addEventListener('click', async () => {
+        const otp = authOtpInput.value.trim();
+        if (!otp) {
             showAuthMessage('Harap masukkan kode OTP.', true);
             return;
         }
+        if (otp.length !== 6) {
+            showAuthMessage('Kode OTP terdiri dari 6 digit.', true);
+            return;
+        }
 
-        showAuthMessage('Memverifikasi kode OTP...', false);
-        if (confirmationResult) {
-            confirmationResult.confirm(code)
-                .then((result) => {
-                    console.log('Phone OTP verified:', result.user);
-                    // BARIS DITAMBAHKAN/DIPASTIKAN: Panggil showPage('home') dan pesan sukses
-                    showAuthMessage('Verifikasi OTP berhasil! Selamat datang.', false); 
-                    // Reset UI OTP
-                    if (otpInputGroup) otpInputGroup.style.display = 'none';
-                    if (verifyOtpButton) verifyOtpButton.style.display = 'none';
-                    if (sendOtpButton) sendOtpButton.style.display = 'block';
-                    if (authPhoneInput) authPhoneInput.value = '';
-                    if (authOtpInput) authOtpInput.value = '';
-                    showPage('home'); 
-                })
-                .catch((error) => {
-                    showAuthMessage(`Error Verifikasi OTP: ${error.message}`, true);
-                    console.error('OTP Verify Error:', error);
-                });
-        } else {
-            showAuthMessage('Silakan kirim OTP terlebih dahulu.', true);
+        try {
+            showAuthMessage('Memverifikasi OTP...', false);
+            await confirmationResult.confirm(otp);
+            // User signed in, onAuthStateChanged akan handle redirect
+        } catch (error) {
+            showAuthMessage(`Error Verifikasi OTP: ${error.message}`, true);
+            console.error('Verify OTP Error:', error);
         }
     });
 }
 
-// --- 7. Fungsi Logout ---
-function logoutUser() {
-    auth.signOut().then(() => {
-        console.log('User signed out successfully.');
+// Logout User
+async function logoutUser() {
+    try {
+        await auth.signOut();
+        // onAuthStateChanged akan menangani pengalihan ke halaman auth
         showAuthMessage('Anda telah keluar.', false);
-    }).catch((error) => {
-        showAuthMessage(`Error Logout: ${error.message}`, true);
+    } catch (error) {
+        showAuthMessage(`Error keluar: ${error.message}`, true);
         console.error('Logout Error:', error);
-    });
+    }
 }
 
-// --- 8. Fungsi untuk Memuat/Membersihkan Data Berdasarkan User (sementara masih localStorage) ---
-// TODO: NANTINYA GANTI DENGAN CLOUD FIRESTORE UNTUK PERSISTENSI DATA SEBENARNYA
-function loadUserData(uid) {
-    console.log(`Memuat data untuk user: ${uid}`);
-    // Muat notes dan transactions dari localStorage dengan kunci per UID
-    notes = JSON.parse(localStorage.getItem(`notes_${uid}`) || '[]');
-    transactions = JSON.parse(localStorage.getItem(`transactions_${uid}`) || '[]');
 
-    renderNotes();
-    calculateSummary();
-    renderTransactions();
+// --- 6. Fungsi Firestore untuk Data User ---
+async function loadUserData(userId) {
+    if (!userId) return;
+    try {
+        const userDocRef = db.collection('users').doc(userId);
+        const doc = await userDocRef.get();
+
+        if (doc.exists) {
+            const userData = doc.data();
+            console.log('User data loaded:', userData);
+            // Panggil fungsi render/load data spesifik
+            renderNotes(userData.notes || []);
+            renderTransactions(userData.transactions || []);
+            calculateSummary(userData.transactions || []);
+        } else {
+            console.log('No user data found for:', userId);
+            // Inisialisasi dengan data kosong jika tidak ada data
+            renderNotes([]);
+            renderTransactions([]);
+            calculateSummary([]);
+        }
+    } catch (error) {
+        console.error('Error loading user data:', error);
+        showAuthMessage('Gagal memuat data pengguna.', true);
+    }
+}
+
+async function saveUserData(dataToSave) {
+    if (!currentUser) {
+        console.error('No current user to save data.');
+        showAuthMessage('Tidak ada pengguna yang masuk untuk menyimpan data.', true);
+        return;
+    }
+    try {
+        await db.collection('users').doc(currentUser.uid).set(dataToSave, { merge: true });
+        console.log('User data saved successfully.');
+    } catch (error) {
+        console.error('Error saving user data:', error);
+        showAuthMessage('Gagal menyimpan data pengguna.', true);
+    }
 }
 
 function clearUserData() {
-    console.log('Membersihkan data karena user logout.');
-    // Mengosongkan data di memori aplikasi
-    notes = [];
-    transactions = [];
-    renderNotes();
-    calculateSummary(); // Reset saldo ke 0
-    renderTransactions();
-
-    // Opsional: Hapus juga dari localStorage jika tidak ingin ada data lokal setelah logout
-    // localStorage.removeItem(`notes_${currentUser?.uid}`); // Hapus hanya jika currentUser ada
-    // localStorage.removeItem(`transactions_${currentUser?.uid}`);
+    // Bersihkan tampilan UI terkait data user
+    if (pinnedNotesContainer) pinnedNotesContainer.innerHTML = '';
+    if (otherNotesContainer) otherNotesContainer.innerHTML = '';
+    if (transactionListUl) transactionListUl.innerHTML = '';
+    if (totalIncomeDisplay) totalIncomeDisplay.textContent = 'Rp 0';
+    if (totalExpenseDisplay) totalExpenseDisplay.textContent = 'Rp 0';
+    if (currentBalanceDisplay) currentBalanceDisplay.textContent = 'Rp 0';
+    // Sembunyikan pesan "Belum ada catatan" jika user logout
+    if (emptyPinnedNotesMessage) emptyPinnedNotesMessage.style.display = 'block';
+    if (emptyOtherNotesMessage) emptyOtherNotesMessage.style.display = 'block';
 }
 
-// --- 9. Logika Aplikasi Utama (Catatan, Keuangan, Produk) ---
 
-// --- Catatan & Pengingat Functionality ---
-function saveNotes() {
-    if (currentUser) {
-        localStorage.setItem(`notes_${currentUser.uid}`, JSON.stringify(notes));
-    } else {
-        // Ini fallback, tapi idealnya tidak terjadi jika aplikasi sudah pakai autentikasi
-        console.warn('Mencoba menyimpan catatan tanpa user login. Data mungkin tidak persisten.');
-        localStorage.setItem('notes_guest', JSON.stringify(notes)); // Simpan sebagai tamu
+// --- 7. Fungsi untuk Catatan & Pengingat ---
+async function addNote() {
+    if (!currentUser) {
+        showAuthMessage('Anda harus masuk untuk menambahkan catatan.', true);
+        return;
+    }
+    const noteText = noteTextInput.value.trim();
+    if (!noteText) {
+        showAuthMessage('Catatan tidak boleh kosong.', true);
+        return;
+    }
+
+    try {
+        const userDocRef = db.collection('users').doc(currentUser.uid);
+        const doc = await userDocRef.get();
+        const existingNotes = doc.exists ? (doc.data().notes || []) : [];
+
+        const newNote = {
+            id: Date.now().toString(), // ID unik berdasarkan timestamp
+            text: noteText,
+            pinned: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp() // Timestamp server
+        };
+
+        const updatedNotes = [...existingNotes, newNote];
+        await saveUserData({ notes: updatedNotes });
+        noteTextInput.value = ''; // Bersihkan input
+        renderNotes(updatedNotes); // Render ulang catatan
+    } catch (error) {
+        showAuthMessage('Gagal menambahkan catatan.', true);
+        console.error('Error adding note:', error);
     }
 }
 
-const createNoteElement = (note) => {
-    const noteDiv = document.createElement('div');
-    noteDiv.classList.add('note-item');
-    if (note.pinned) {
-        noteDiv.classList.add('pinned');
+async function togglePinNote(noteId) {
+    if (!currentUser) return;
+    try {
+        const userDocRef = db.collection('users').doc(currentUser.uid);
+        const doc = await userDocRef.get();
+        const existingNotes = doc.exists ? (doc.data().notes || []) : [];
+
+        const updatedNotes = existingNotes.map(note =>
+            note.id === noteId ? { ...note, pinned: !note.pinned } : note
+        );
+        await saveUserData({ notes: updatedNotes });
+        renderNotes(updatedNotes);
+    } catch (error) {
+        showAuthMessage('Gagal mengubah status semat catatan.', true);
+        console.error('Error toggling pin:', error);
     }
+}
 
-    noteDiv.innerHTML = `
-        <p class="note-content">${note.text}</p>
-        <div class="note-actions">
-            <button class="pin-button" data-id="${note.id}" title="${note.pinned ? 'Lepas Sematan' : 'Sematkan Catatan'}">
-                <i class="fas fa-thumbtack ${note.pinned ? 'pinned' : ''}"></i>
-            </button>
-            <button class="delete-button" data-id="${note.id}" title="Hapus Catatan">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    `;
+async function deleteNote(noteId) {
+    if (!currentUser) return;
+    if (!confirm('Apakah Anda yakin ingin menghapus catatan ini?')) return;
 
-    noteDiv.querySelector('.delete-button').addEventListener('click', (e) => {
-        const idToDelete = e.currentTarget.dataset.id;
-        notes = notes.filter(note => note.id !== idToDelete);
-        saveNotes();
-        renderNotes();
-    });
+    try {
+        const userDocRef = db.collection('users').doc(currentUser.uid);
+        const doc = await userDocRef.get();
+        const existingNotes = doc.exists ? (doc.data().notes || []) : [];
 
-    noteDiv.querySelector('.pin-button').addEventListener('click', (e) => {
-        const idToPin = e.currentTarget.dataset.id;
-        const targetNote = notes.find(note => note.id === idToPin);
-        if (targetNote) {
-            targetNote.pinned = !targetNote.pinned;
-            saveNotes();
-            renderNotes();
-        }
-    });
+        const updatedNotes = existingNotes.filter(note => note.id !== noteId);
+        await saveUserData({ notes: updatedNotes });
+        renderNotes(updatedNotes);
+    } catch (error) {
+        showAuthMessage('Gagal menghapus catatan.', true);
+        console.error('Error deleting note:', error);
+    }
+}
 
-    return noteDiv;
-};
-
-function renderNotes() {
+function renderNotes(notes) {
     if (!pinnedNotesContainer || !otherNotesContainer) return;
 
     pinnedNotesContainer.innerHTML = '';
     otherNotesContainer.innerHTML = '';
 
-    const pinnedNotes = notes.filter(note => note.pinned);
-    const otherNotes = notes.filter(note => !note.pinned);
+    const pinned = notes.filter(note => note.pinned);
+    const other = notes.filter(note => !note.pinned);
 
-    if (pinnedNotes.length === 0) {
-        if (emptyPinnedNotesMessage) emptyPinnedNotesMessage.style.display = 'block';
+    if (pinned.length === 0) {
+        emptyPinnedNotesMessage.style.display = 'block';
     } else {
-        if (emptyPinnedNotesMessage) emptyPinnedNotesMessage.style.display = 'none';
-        pinnedNotes.forEach(note => {
-            pinnedNotesContainer.appendChild(createNoteElement(note));
+        emptyPinnedNotesMessage.style.display = 'none';
+        pinned.forEach(note => {
+            const noteElement = createNoteElement(note);
+            pinnedNotesContainer.appendChild(noteElement);
         });
     }
 
-    if (otherNotes.length === 0) {
-        if (emptyOtherNotesMessage) emptyOtherNotesMessage.style.display = 'block';
+    if (other.length === 0) {
+        emptyOtherNotesMessage.style.display = 'block';
     } else {
-        if (emptyOtherNotesMessage) emptyOtherNotesMessage.style.display = 'none';
-        otherNotes.forEach(note => {
-            otherNotesContainer.appendChild(createNoteElement(note));
+        emptyOtherNotesMessage.style.display = 'none';
+        other.forEach(note => {
+            const noteElement = createNoteElement(note);
+            otherNotesContainer.appendChild(noteElement);
         });
     }
 }
 
-if (addNoteButton) {
-    addNoteButton.addEventListener('click', () => {
-        const text = noteText.value.trim();
-        if (text && currentUser) { // Pastikan ada user yang login sebelum menambahkan catatan
-            const newNote = {
-                id: Date.now().toString(),
-                text: text,
-                pinned: false
-            };
-            notes.unshift(newNote); // Tambahkan ke awal array
-            saveNotes();
-            renderNotes();
-            noteText.value = '';
-        } else if (!currentUser) {
-            showAuthMessage('Anda harus masuk untuk menambahkan catatan.', true);
-        }
+function createNoteElement(note) {
+    const div = document.createElement('div');
+    div.classList.add('note-item');
+    if (note.pinned) {
+        div.classList.add('pinned');
+    }
+    div.innerHTML = `
+        <p class="note-content">${note.text}</p>
+        <div class="note-actions">
+            <button class="pin-button" data-id="${note.id}" aria-label="Pin/Unpin Note">
+                <i class="${note.pinned ? 'fas fa-thumbtack pinned' : 'far fa-thumbtack'}"></i>
+            </button>
+            <button class="delete-button" data-id="${note.id}" aria-label="Delete Note">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+
+    div.querySelector('.pin-button').addEventListener('click', () => togglePinNote(note.id));
+    div.querySelector('.delete-button').addEventListener('click', () => deleteNote(note.id));
+    return div;
+}
+
+
+// --- 8. Fungsi untuk Keuangan Berkelanjutan ---
+async function addTransaction() {
+    if (!currentUser) {
+        showAuthMessage('Anda harus masuk untuk menambahkan transaksi.', true);
+        return;
+    }
+    const description = transactionDescriptionInput.value.trim();
+    const amount = parseFloat(transactionAmountInput.value);
+    const type = transactionTypeSelect.value;
+
+    if (!description || isNaN(amount) || amount <= 0) {
+        showAuthMessage('Deskripsi dan jumlah harus valid.', true);
+        return;
+    }
+
+    try {
+        const userDocRef = db.collection('users').doc(currentUser.uid);
+        const doc = await userDocRef.get();
+        const existingTransactions = doc.exists ? (doc.data().transactions || []) : [];
+
+        const newTransaction = {
+            id: Date.now().toString(),
+            description,
+            amount,
+            type,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        const updatedTransactions = [...existingTransactions, newTransaction];
+        await saveUserData({ transactions: updatedTransactions });
+        
+        transactionDescriptionInput.value = '';
+        transactionAmountInput.value = '';
+        transactionTypeSelect.value = 'income';
+        
+        renderTransactions(updatedTransactions);
+        calculateSummary(updatedTransactions);
+    } catch (error) {
+        showAuthMessage('Gagal menambahkan transaksi.', true);
+        console.error('Error adding transaction:', error);
+    }
+}
+
+async function deleteTransaction(transactionId) {
+    if (!currentUser) return;
+    if (!confirm('Apakah Anda yakin ingin menghapus transaksi ini?')) return;
+
+    try {
+        const userDocRef = db.collection('users').doc(currentUser.uid);
+        const doc = await userDocRef.get();
+        const existingTransactions = doc.exists ? (doc.data().transactions || []) : [];
+
+        const updatedTransactions = existingTransactions.filter(t => t.id !== transactionId);
+        await saveUserData({ transactions: updatedTransactions });
+        renderTransactions(updatedTransactions);
+        calculateSummary(updatedTransactions);
+    } catch (error) {
+        showAuthMessage('Gagal menghapus transaksi.', true);
+        console.error('Error deleting transaction:', error);
+    }
+}
+
+function renderTransactions(transactions) {
+    if (!transactionListUl) return;
+    transactionListUl.innerHTML = '';
+    
+    if (transactions.length === 0) {
+        const li = document.createElement('li');
+        li.classList.add('empty-message');
+        li.textContent = 'Belum ada transaksi.';
+        transactionListUl.appendChild(li);
+        return;
+    }
+
+    // Urutkan transaksi dari yang terbaru
+    const sortedTransactions = [...transactions].sort((a, b) => {
+        // Konversi Firestore Timestamp ke milidetik jika perlu, atau pastikan formatnya sama
+        const timeA = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime()) : 0;
+        const timeB = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime()) : 0;
+        return timeB - timeA; // Terbaru di atas
+    });
+
+    sortedTransactions.forEach(t => {
+        const li = document.createElement('li');
+        li.classList.add('transaction-item', t.type);
+        const amountDisplay = t.type === 'expense' ? `- Rp ${t.amount.toLocaleString('id-ID')}` : `+ Rp ${t.amount.toLocaleString('id-ID')}`;
+        
+        // Format tanggal jika createdAt adalah Firestore Timestamp
+        const date = t.createdAt ? (t.createdAt.toDate ? t.createdAt.toDate() : new Date(t.createdAt)) : new Date();
+        const formattedDate = date.toLocaleDateString('id-ID', {
+            year: 'numeric', month: 'short', day: 'numeric'
+        });
+
+        li.innerHTML = `
+            <div class="transaction-details">
+                <h4>${t.description}</h4>
+                <p>${formattedDate}</p>
+            </div>
+            <span class="transaction-amount-display">${amountDisplay}</span>
+            <button class="delete-button" data-id="${t.id}" aria-label="Hapus Transaksi">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        li.querySelector('.delete-button').addEventListener('click', () => deleteTransaction(t.id));
+        transactionListUl.appendChild(li);
     });
 }
 
 
-// --- Keuangan Berkelanjutan Functionality ---
-function saveTransactions() {
-    if (currentUser) {
-        localStorage.setItem(`transactions_${currentUser.uid}`, JSON.stringify(transactions));
-    } else {
-        console.warn('Mencoba menyimpan transaksi tanpa user login. Data mungkin tidak persisten.');
-        localStorage.setItem('transactions_guest', JSON.stringify(transactions)); // Simpan sebagai tamu
-    }
-}
-
-function calculateSummary() {
+function calculateSummary(transactions) {
     let totalIncome = 0;
     let totalExpense = 0;
 
     transactions.forEach(t => {
         if (t.type === 'income') {
             totalIncome += t.amount;
-        } else {
+        } else if (t.type === 'expense') {
             totalExpense += t.amount;
         }
     });
 
     const currentBalance = totalIncome - totalExpense;
 
-    if (totalIncomeEl) totalIncomeEl.textContent = formatCurrency(totalIncome);
-    if (totalExpenseEl) totalExpenseEl.textContent = formatCurrency(totalExpense);
-    if (currentBalanceEl) {
-        currentBalanceEl.textContent = formatCurrency(currentBalance);
-        if (currentBalance < 0) {
-            currentBalanceEl.style.color = 'var(--error-color)'; // Merah
-        } else {
-            currentBalanceEl.style.color = 'var(--primary-color)'; // Biru
-        }
-    }
-}
-
-function formatCurrency(amount) {
-    return `Rp ${amount.toLocaleString('id-ID')}`;
-}
-
-function renderTransactions() {
-    if (!transactionList) return;
-
-    transactionList.innerHTML = '';
-
-    if (transactions.length === 0) {
-        const emptyMessage = document.createElement('li');
-        emptyMessage.classList.add('empty-message');
-        emptyMessage.textContent = 'Belum ada transaksi.';
-        transactionList.appendChild(emptyMessage);
-    } else {
-        // Urutkan transaksi dari yang terbaru
-        const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-        sortedTransactions.forEach(t => {
-            const li = document.createElement('li');
-            li.classList.add('transaction-item', t.type);
-            li.innerHTML = `
-                <div class="transaction-details">
-                    <h4>${t.description}</h4>
-                    <p>${new Date(t.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
-                </div>
-                <span class="transaction-amount-display">${t.type === 'expense' ? '-' : ''}${formatCurrency(t.amount)}</span>
-                <button class="delete-button" data-id="${t.id}" title="Hapus Transaksi">
-                    <i class="fas fa-trash"></i>
-                </button>
-            `;
-            transactionList.appendChild(li);
-
-            li.querySelector('.delete-button').addEventListener('click', (e) => {
-                const idToDelete = e.currentTarget.dataset.id;
-                transactions = transactions.filter(transaction => transaction.id !== idToDelete);
-                saveTransactions();
-                calculateSummary();
-                renderTransactions();
-            });
-        });
-    }
-}
-
-if (addTransactionButton) {
-    addTransactionButton.addEventListener('click', () => {
-        const description = transactionDescriptionInput.value.trim();
-        const amount = parseFloat(transactionAmountInput.value);
-        const type = transactionTypeSelect.value;
-
-        if (description && !isNaN(amount) && amount > 0 && currentUser) { // Pastikan ada user login
-            const newTransaction = {
-                id: Date.now().toString(),
-                description: description,
-                amount: amount,
-                type: type,
-                date: new Date().toISOString()
-            };
-            transactions.push(newTransaction);
-            saveTransactions();
-            calculateSummary();
-            renderTransactions();
-
-            transactionDescriptionInput.value = '';
-            transactionAmountInput.value = '';
-            transactionTypeSelect.value = 'income';
-        } else if (!currentUser) {
-            showAuthMessage('Anda harus masuk untuk menambahkan transaksi.', true);
-        } else {
-            alert('Harap isi deskripsi dan jumlah yang valid.');
-        }
-    });
+    if (totalIncomeDisplay) totalIncomeDisplay.textContent = `Rp ${totalIncome.toLocaleString('id-ID')}`;
+    if (totalExpenseDisplay) totalExpenseDisplay.textContent = `Rp ${totalExpense.toLocaleString('id-ID')}`;
+    if (currentBalanceDisplay) currentBalanceDisplay.textContent = `Rp ${currentBalance.toLocaleString('id-ID')}`;
 }
 
 
-// --- Saran Produk Go Green Functionality ---
+// --- 9. Fungsi untuk Saran Produk Go Green (Diambil dari script Anda) ---
 const greenProductsData = [
     {
         id: 'dpr001',
@@ -691,20 +760,6 @@ function showProductDetail(productId) {
     `;
 }
 
-// Event listener untuk card di halaman home (Beranda)
-if (homeCategoryCards) {
-    homeCategoryCards.forEach(card => {
-        card.addEventListener('click', (e) => {
-            const targetPage = e.currentTarget.dataset.page;
-            // Jika card adalah untuk produk, render kategori produk
-            if (targetPage === 'products') {
-                renderProductCategories(); // Pastikan kategori produk dirender saat masuk halaman produk
-            }
-            showPage(targetPage);
-        });
-    });
-}
-
 
 // --- 10. Inisialisasi Aplikasi Saat DOM Siap ---
 document.addEventListener('DOMContentLoaded', () => {
@@ -721,66 +776,120 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // === START PERUBAHAN DI DOMContentLoaded ===
-    // BARIS DITAMBAHKAN/DIPASTIKAN: Pastikan semua halaman tersembunyi di awal
+    // Pastikan semua halaman tersembunyi di awal
     document.querySelectorAll('.page').forEach(page => {
         page.style.display = 'none'; 
     });
-    // === END PERUBAHAN DI DOMContentLoaded ===
 
     // --- Inisialisasi reCAPTCHA Verifier (PENTING untuk Autentikasi Telepon) ---
-    // Dipindahkan ke sini agar `recaptchaContainer` pasti sudah ada di DOM
     if (recaptchaContainer && typeof grecaptcha !== 'undefined') {
-        window.recaptchaVerifier.render();
+        window.recaptchaVerifier.render().then(function(widgetId) {
+            window.recaptchaVerifier.rendered = true; // Set flag setelah dirender
+            console.log('reCAPTCHA rendered with widget ID:', widgetId);
+        });
     } else {
         console.warn('reCAPTCHA container atau grecaptcha tidak ditemukan. Autentikasi telepon mungkin tidak berfungsi.');
     }
 
+    // Event listener untuk tombol autentikasi
+    if (signupEmailButton) {
+        signupEmailButton.addEventListener('click', signupWithEmail);
+    }
+    if (loginEmailButton) {
+        loginEmailButton.addEventListener('click', loginWithEmail);
+    }
 
-    // --- DOM Elements ---
-    const menuToggle = document.getElementById('menu-toggle');
-    const sideMenu = document.getElementById('side-menu');
-    const navLinks = document.querySelectorAll('.side-menu a');
-    const backButtons = document.querySelectorAll('.back-button');
-
-    // --- Event Listeners for Navigation ---
-    if (menuToggle) {
-        menuToggle.addEventListener('click', () => {
-            if (sideMenu) sideMenu.classList.toggle('active');
+    // BARU: Event listener untuk tombol pilihan autentikasi
+    if (showEmailAuthButton) {
+        showEmailAuthButton.addEventListener('click', () => {
+            showAuthSubmenu('email-auth-submenu');
+        });
+    }
+    if (showPhoneAuthButton) {
+        showPhoneAuthButton.addEventListener('click', () => {
+            showAuthSubmenu('phone-auth-submenu');
+            // Pastikan recaptcha ditampilkan/dirender jika belum saat beralih ke phone auth
+            if (recaptchaContainer && typeof grecaptcha !== 'undefined' && !window.recaptchaVerifier.rendered) {
+                 window.recaptchaVerifier.render().then(function(widgetId) {
+                    window.recaptchaVerifier.rendered = true;
+                    console.log('reCAPTCHA rendered (on phone auth switch):', widgetId);
+                });
+            }
         });
     }
 
-    const closeMenuButton = document.getElementById('close-menu');
-    if (closeMenuButton) {
-        closeMenuButton.addEventListener('click', () => {
+    // Event listener untuk tombol tambah catatan
+    if (addNoteButton) {
+        addNoteButton.addEventListener('click', addNote);
+    }
+
+    // Event listener untuk tombol tambah transaksi
+    if (addTransactionButton) {
+        addTransactionButton.addEventListener('click', addTransaction);
+    }
+
+    // --- Event listener untuk tombol toggle menu samping ---
+    const menuToggle = document.getElementById('menu-toggle');
+    const closeMenu = document.getElementById('close-menu');
+    const sideMenu = document.getElementById('side-menu');
+
+    if (menuToggle) {
+        menuToggle.addEventListener('click', () => {
+            if (sideMenu) sideMenu.classList.add('active');
+        });
+    }
+
+    if (closeMenu) {
+        closeMenu.addEventListener('click', () => {
             if (sideMenu) sideMenu.classList.remove('active');
         });
     }
 
-    if (navLinks) {
-        navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const page = e.target.dataset.page;
-                if (page) { // Pastikan data-page ada
-                    showPage(page);
+    // --- Event listener untuk navigasi di menu samping dan kartu ---
+    // Home category cards (perhatikan ID atau kelas yang digunakan di HTML)
+    const homeCategoryCards = document.querySelectorAll('#home-page .card');
+    document.querySelectorAll('#side-menu ul li a').forEach(element => {
+        element.addEventListener('click', (event) => {
+            event.preventDefault(); // Mencegah perilaku default link
+            const pageId = element.dataset.page;
+            if (pageId) {
+                showPage(pageId);
+                // Tambahan khusus untuk halaman produk jika navigasi langsung
+                if (pageId === 'products') {
+                    renderProductCategories();
                 }
+            }
+        });
+    });
+
+    if (homeCategoryCards) {
+        homeCategoryCards.forEach(card => {
+            card.addEventListener('click', (e) => {
+                const targetPage = e.currentTarget.dataset.page;
+                // Jika card adalah untuk produk, render kategori produk
+                if (targetPage === 'products') {
+                    renderProductCategories(); // Pastikan kategori produk dirender saat masuk halaman produk
+                }
+                showPage(targetPage);
             });
         });
     }
 
+    // --- Event listener untuk tombol kembali (back buttons) ---
+    const backButtons = document.querySelectorAll('.back-button');
     if (backButtons) {
         backButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const targetPage = e.currentTarget.dataset.target;
-                if (targetPage) { // Pastikan data-target ada
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                const targetPage = button.dataset.target;
+                if (targetPage) {
                     showPage(targetPage);
-                    // Logika khusus untuk kembali ke halaman produk yang benar
+                    // Logika tambahan jika kembali ke halaman tertentu perlu memuat ulang konten
                     if (targetPage === 'product-list') {
                         const categoryTitleElement = document.getElementById('product-list-category-title');
                         if (categoryTitleElement) {
                             const categoryTitle = categoryTitleElement.textContent;
-                            const category = categoryTitle.replace('Produk Kategori: ', '');
+                            const category = categoryTitle.replace('Produk Kategori: ', ''); // Asumsi format
                             renderProductsByCategory(category);
                         } else {
                             // Fallback jika title tidak ditemukan, kembali ke halaman kategori utama
@@ -800,6 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Inisialisasi tampilan kategori produk saat halaman dimuat pertama kali
+    // (Ini akan dipanggil jika user pertama kali membuka aplikasi atau setelah logout)
     renderProductCategories();
 
     // Catatan: Panggilan `renderNotes()`, `calculateSummary()`, `renderTransactions()`
