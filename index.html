@@ -34,8 +34,16 @@
         </nav>
 
         <main>
-            <section id="auth-page" class="page active">
-                <h2>Selamat Datang!</h2>
+            <section id="welcome-guest-page" class="page active">
+                <div class="welcome-content">
+                    <h2>Selamat Datang di MemoEcoKu!</h2>
+                    <p>Kelola catatan penting Anda, lacak keuangan berkelanjutan, dan temukan saran produk ramah lingkungan untuk gaya hidup yang lebih hijau.</p>
+                    <button class="button-primary" id="go-to-auth-button">Masuk atau Daftar</button>
+                </div>
+            </section>
+
+            <section id="auth-page" class="page">
+                <h2>Selamat Datang Kembali!</h2>
                 <p id="auth-status-message" class="message"></p>
                 <div id="auth-method-selection">
                     <button id="show-email-auth">Email</button>
