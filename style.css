@@ -52,7 +52,7 @@ header {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     position: sticky; /* Agar header tetap di atas saat scroll */
     top: 0;
-    z-index: 50; /* Pastikan header di atas konten utama */
+    z-index: 9999; /* <-- UBAH KE NILAI INI: Pastikan header dan tombol toggle di atas elemen lain */
     width: 100%; /* Memenuhi lebar parent */
 }
 
