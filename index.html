@@ -12,7 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
+    
 </head>
 <body>
     <div id="app-container">
@@ -26,75 +26,67 @@
             <ul>
                 <li><a href="#" data-page="home"><i class="fas fa-home"></i> Beranda</a></li>
                 <li><a href="#" data-page="notes"><i class="fas fa-sticky-note"></i> Catatan & Pengingat</a></li>
-                <li><a href="#" data-page="finance"><i class="fas fa-wallet"></i> Keuangan Berkelanjutan</a></li>
+                <li><a href="#" data-page="finance"><i class="fas fa-chart-line"></i> Keuangan Berkelanjutan</a></li>
                 <li><a href="#" data-page="products"><i class="fas fa-leaf"></i> Saran Produk Go Green</a></li>
-                <li><a href="#" id="logout-button"><i class="fas fa-sign-out-alt"></i> Keluar</a></li>
+                <li id="login-menu-item"><a href="#" data-page="auth"><i class="fas fa-user"></i> Login/Daftar</a></li>
+                <li id="logout-menu-item"><a href="#" id="logout-button"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
         </nav>
 
-        <main id="app-content">
-            <section id="auth-page" class="page">
-                <h2>Selamat Datang di MemoEcoKu!</h2>
-                <p id="auth-status-message" class="status-message"></p>
-
-                <div class="auth-selection-buttons">
-                    <button class="btn primary-btn" id="show-email-auth">Login / Daftar dengan Email</button>
-                    <button class="btn secondary-btn" id="show-phone-auth">Login dengan Telepon</button>
+        <main>
+            <section id="auth-page" class="page active">
+                <h2>Selamat Datang!</h2>
+                <p id="auth-status-message" class="message"></p>
+                <div id="auth-method-selection">
+                    <button id="show-email-auth">Email</button>
+                    <button id="show-phone-auth">Telepon</button>
                 </div>
 
                 <div id="email-auth-submenu" class="auth-submenu">
-                    <div class="auth-section">
-                        <h3>Login / Daftar dengan Email</h3>
-                        <div class="input-group">
-                            <label for="auth-email">Email:</label>
-                            <input type="email" id="auth-email" placeholder="email@contoh.com" required>
-                        </div>
-                        <div class="input-group">
-                            <label for="auth-password">Password:</label>
-                            <input type="password" id="auth-password" placeholder="Minimal 6 karakter" required>
-                        </div>
-                        <button class="btn primary-btn" id="login-email-button">Masuk dengan Email</button>
-                        <button class="btn secondary-btn" id="signup-email-button">Daftar dengan Email</button>
+                    <div class="form-group">
+                        <label for="auth-email">Email:</label>
+                        <input type="email" id="auth-email" placeholder="email@example.com">
                     </div>
+                    <div class="form-group">
+                        <label for="auth-password">Password:</label>
+                        <input type="password" id="auth-password" placeholder="minimal 6 karakter">
+                    </div>
+                    <button class="button-primary" id="login-email-button">Masuk</button>
+                    <button class="button-secondary" id="signup-email-button">Daftar Baru</button>
                 </div>
 
                 <div id="phone-auth-submenu" class="auth-submenu">
-                    <div class="auth-section">
-                        <h3>Login dengan Telepon</h3>
-                        <div class="input-group">
-                            <label for="auth-phone">Nomor Telepon:</label>
-                            <input type="tel" id="auth-phone" placeholder="+62812xxxxxx" required>
-                        </div>
-                        <div id="recaptcha-container"></div>
-                        <button class="btn primary-btn" id="send-otp-button">Kirim OTP</button>
-
-                        <div class="input-group" id="otp-input-group" style="display: none;">
+                    <div class="form-group">
+                        <label for="auth-phone">Nomor Telepon (contoh: +62812...):</label>
+                        <input type="tel" id="auth-phone" placeholder="+6281234567890">
+                    </div>
+                    <div id="recaptcha-container"></div>
+                    <button class="button-primary" id="send-otp-button">Kirim Kode OTP</button>
+                    <div id="otp-input-group">
+                        <div class="form-group">
                             <label for="auth-otp">Kode OTP:</label>
-                            <input type="text" id="auth-otp" placeholder="Masukkan 6 digit kode" required>
-                            <button class="btn secondary-btn" id="verify-otp-button">Verifikasi OTP</button>
+                            <input type="text" id="auth-otp" placeholder="6 digit kode">
                         </div>
+                        <button class="button-primary" id="verify-otp-button">Verifikasi OTP</button>
                     </div>
                 </div>
             </section>
 
             <section id="home-page" class="page">
-                <h2>Beranda</h2>
-                <p>Halo, <span id="user-display-name">Pengguna!</span> Selamat datang kembali.</p>
+                <h2>Selamat Datang di MemoEcoKu!</h2>
+                <p id="welcome-message">Hai <span id="user-display-name">Pengguna</span>, mari kita kelola catatan dan keuangan berkelanjutan Anda.</p>
                 <div class="card-grid">
                     <div class="card" data-page="notes">
-                        <div class="card-icon"><i class="fas fa-sticky-note"></i></div>
+                        <i class="fas fa-sticky-note"></i>
                         <h3>Catatan & Pengingat</h3>
-                        <p>Catat ide, tugas, dan pengingat penting Anda.</p>
                     </div>
                     <div class="card" data-page="finance">
-                        <div class="card-icon"><i class="fas fa-wallet"></i></div>
+                        <i class="fas fa-chart-line"></i>
                         <h3>Keuangan Berkelanjutan</h3>
-                        <p>Kelola pemasukan dan pengeluaran Anda.</p>
                     </div>
                     <div class="card" data-page="products">
-                        <div class="card-icon"><i class="fas fa-leaf"></i></div>
+                        <i class="fas fa-leaf"></i>
                         <h3>Saran Produk Go Green</h3>
-                        <p>Temukan produk ramah lingkungan untuk gaya hidup Anda.</p>
                     </div>
                 </div>
             </section>
@@ -104,18 +96,29 @@
                     <button class="back-button" data-target="home"><i class="fas fa-arrow-left"></i></button>
                     <h2>Catatan & Pengingat</h2>
                 </div>
-                <div class="input-group">
-                    <textarea id="note-text" placeholder="Tulis catatan Anda di sini..."></textarea>
-                    <button class="btn primary-btn" id="add-note-button">Tambah Catatan</button>
+                <div class="add-note-section">
+                    <h3>Tambah Catatan Baru</h3>
+                    <div class="note-input-group">
+                        <textarea id="note-text" placeholder="Tulis catatan Anda di sini..."></textarea>
+                        <button id="add-note-button"><i class="fas fa-plus"></i></button>
+                    </div>
                 </div>
-                <h3>Disematkan</h3>
-                <div id="empty-pinned-notes-message" class="empty-message" style="display: none;">Belum ada catatan yang disematkan.</div>
-                <div id="pinned-notes-container" class="notes-grid">
+
+                <div class="note-list-container">
+                    <div class="section-header">
+                        <h3>Catatan Penting</h3>
                     </div>
-                <h3>Lainnya</h3>
-                <div id="empty-other-notes-message" class="empty-message" style="display: none;">Belum ada catatan lainnya.</div>
-                <div id="other-notes-container" class="notes-grid">
+                    <div id="pinned-notes-container">
+                        <p id="empty-pinned-notes-message" class="empty-message">Belum ada catatan penting.</p>
                     </div>
+
+                    <div class="section-header" style="margin-top: 30px;">
+                        <h3>Catatan Lainnya</h3>
+                    </div>
+                    <div id="other-notes-container">
+                        <p id="empty-other-notes-message" class="empty-message">Belum ada catatan lainnya.</p>
+                    </div>
+                </div>
             </section>
 
             <section id="finance-page" class="page">
@@ -123,78 +126,78 @@
                     <button class="back-button" data-target="home"><i class="fas fa-arrow-left"></i></button>
                     <h2>Keuangan Berkelanjutan</h2>
                 </div>
-                <div class="summary-card">
-                    <div>
-                        <h3>Total Pemasukan</h3>
-                        <p id="total-income" class="income">Rp 0</p>
+                <div class="summary-cards">
+                    <div class="summary-card income">
+                        <h4>Total Pemasukan</h4>
+                        <p id="total-income">Rp 0</p>
                     </div>
-                    <div>
-                        <h3>Total Pengeluaran</h3>
-                        <p id="total-expense" class="expense">Rp 0</p>
+                    <div class="summary-card expense">
+                        <h4>Total Pengeluaran</h4>
+                        <p id="total-expense">Rp 0</p>
                     </div>
-                    <div>
-                        <h3>Saldo Saat Ini</h3>
-                        <p id="current-balance" class="balance">Rp 0</p>
+                    <div class="summary-card balance">
+                        <h4>Saldo Saat Ini</h4>
+                        <p id="current-balance">Rp 0</p>
                     </div>
                 </div>
 
-                <h3>Tambah Transaksi Baru</h3>
-                <div class="input-group">
-                    <label for="transaction-description">Deskripsi:</label>
-                    <input type="text" id="transaction-description" placeholder="Makan siang, Gaji, dll." required>
+                <div class="add-transaction-section">
+                    <h3>Tambah Transaksi Baru</h3>
+                    <div class="form-group">
+                        <label for="transaction-description">Deskripsi:</label>
+                        <input type="text" id="transaction-description" placeholder="Pembelian produk ramah lingkungan">
+                    </div>
+                    <div class="form-group">
+                        <label for="transaction-amount">Jumlah:</label>
+                        <input type="number" id="transaction-amount" placeholder="contoh: 50000">
+                    </div>
+                    <div class="form-group">
+                        <label for="transaction-type">Tipe:</label>
+                        <select id="transaction-type">
+                            <option value="income">Pemasukan</option>
+                            <option value="expense">Pengeluaran</option>
+                        </select>
+                    </div>
+                    <button class="button-primary" id="add-transaction-button">Tambah Transaksi</button>
                 </div>
-                <div class="input-group">
-                    <label for="transaction-amount">Jumlah:</label>
-                    <input type="number" id="transaction-amount" placeholder="0" required min="0">
-                </div>
-                <div class="input-group">
-                    <label for="transaction-type">Jenis:</label>
-                    <select id="transaction-type">
-                        <option value="income">Pemasukan</option>
-                        <option value="expense">Pengeluaran</option>
-                    </select>
-                </div>
-                <button class="btn primary-btn" id="add-transaction-button">Tambah Transaksi</button>
 
-                <h3>Riwayat Transaksi</h3>
-                <ul id="transaction-list">
+                <section class="transaction-list-section">
+                    <h3>Daftar Transaksi</h3>
+                    <ul id="transaction-list">
                     </ul>
-            </section>
+                </section>
 
-            <section id="products-page" class="page">
-                <div class="page-header">
-                    <button class="back-button" data-target="home"><i class="fas fa-arrow-left"></i></button>
-                    <h2>Saran Produk Go Green</h2>
-                </div>
-                <p>Jelajahi berbagai kategori produk ramah lingkungan.</p>
-                <div id="product-categories-grid" class="category-grid">
+                <section id="products-page" class="page">
+                    <div class="page-header">
+                        <button class="back-button" data-target="home"><i class="fas fa-arrow-left"></i></button>
+                        <h2>Saran Produk Go Green</h2>
                     </div>
-            </section>
-
-            <section id="product-list-page" class="page">
-                <div class="page-header">
-                    <button class="back-button" data-target="products"><i class="fas fa-arrow-left"></i></button>
-                    <h2 id="product-list-category-title"></h2>
-                </div>
-                <div id="product-list-container" class="product-list">
+                    <p>Jelajahi berbagai kategori produk ramah lingkungan.</p>
+                    <div id="product-categories-grid" class="category-grid">
                     </div>
-            </section>
+                </section>
 
-            <section id="product-detail-page" class="page">
-                <div class="page-header">
-                    <button class="back-button" data-target="product-list"><i class="fas fa-arrow-left"></i></button>
-                    <h2>Detail Produk</h2>
-                </div>
-                <div id="product-detail-content" class="product-detail">
+                <section id="product-list-page" class="page">
+                    <div class="page-header">
+                        <button class="back-button" data-target="products"><i class="fas fa-arrow-left"></i></button>
+                        <h2 id="product-list-category-title"></h2>
                     </div>
-            </section>
+                    <div id="product-list-container" class="product-list">
+                    </div>
+                </section>
 
-        </main>
-    </div>
+                <section id="product-detail-page" class="page">
+                    <div class="page-header">
+                        <button class="back-button" data-target="product-list"><i class="fas fa-arrow-left"></i></button>
+                        <h2>Detail Produk</h2>
+                    </div>
+                    <div id="product-detail-content" class="product-detail">
+                    </div>
+                </section>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="script.js"></script>
-</body>
+            </main>
+        </div>
+
+        <script src="script.js"></script>
+    </body>
 </html>
