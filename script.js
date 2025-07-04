@@ -45,6 +45,10 @@ const userDisplayName = document.getElementById('user-display-name'); // Tambahk
 const loginMenuItem = document.getElementById('login-menu-item');
 const logoutMenuItem = document.getElementById('logout-menu-item');
 
+// BARU: Elemen untuk halaman welcome-guest
+const welcomeGuestPage = document.getElementById('welcome-guest-page');
+const goToAuthButton = document.getElementById('go-to-auth-button');
+
 
 // Elemen UI Catatan
 const addNoteButton = document.getElementById('add-note-button');
@@ -106,6 +110,7 @@ function showAuthSubmenu(submenuId) {
     });
 
     // Sembunyikan juga tombol pilihan autentikasi
+    // Ini penting agar tombol email/telepon muncul hanya saat pertama kali di halaman auth
     if (showEmailAuthButton) showEmailAuthButton.style.display = 'none';
     if (showPhoneAuthButton) showPhoneAuthButton.style.display = 'none';
 
@@ -133,22 +138,18 @@ auth.onAuthStateChanged(user => {
         showPage('home'); // Arahkan ke halaman utama setelah login
         loadUserData(currentUser.uid); // Muat data user
 
-        // BARU: Kontrol visibilitas menu samping
+        // Kontrol visibilitas menu samping
         if (loginMenuItem) loginMenuItem.style.display = 'none'; // Sembunyikan 'Login/Daftar'
         if (logoutMenuItem) logoutMenuItem.style.display = 'list-item'; // Tampilkan 'Logout'
     } else {
         currentUser = null;
         console.log('User signed out.');
-        showPage('auth'); // Arahkan ke halaman autentikasi jika belum login
+        // BARU: Arahkan ke halaman welcome-guest jika belum login
+        showPage('welcome-guest');
         showAuthMessage('Silakan masuk atau daftar.', false);
         clearUserData(); // Bersihkan data lokal saat logout
 
-        // BARU: Tampilkan tombol pilihan autentikasi dan submenu default (misal email)
-        if (showEmailAuthButton) showEmailAuthButton.style.display = 'block';
-        if (showPhoneAuthButton) showPhoneAuthButton.style.display = 'block';
-        showAuthSubmenu('email-auth-submenu'); // Tampilkan form email secara default
-
-        // BARU: Kontrol visibilitas menu samping
+        // Kontrol visibilitas menu samping
         if (loginMenuItem) loginMenuItem.style.display = 'list-item'; // Tampilkan 'Login/Daftar'
         if (logoutMenuItem) logoutMenuItem.style.display = 'none'; // Sembunyikan 'Logout'
     }
@@ -789,10 +790,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Pastikan semua halaman tersembunyi di awal
+    // Pastikan semua halaman tersembunyi di awal, kecuali halaman welcome-guest
     document.querySelectorAll('.page').forEach(page => {
         page.style.display = 'none'; 
     });
+    // BARU: Set halaman welcome-guest sebagai default yang terlihat di awal
+    if (welcomeGuestPage) {
+        welcomeGuestPage.style.display = 'block';
+        welcomeGuestPage.classList.add('active'); // Pastikan juga aktif
+    }
+
 
     // --- Inisialisasi reCAPTCHA Verifier (PENTING untuk Autentikasi Telepon) ---
     if (recaptchaContainer && typeof grecaptcha !== 'undefined') {
@@ -830,6 +837,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // BARU: Event listener untuk tombol "Masuk atau Daftar" di halaman welcome-guest
+    if (goToAuthButton) {
+        goToAuthButton.addEventListener('click', () => {
+            showPage('auth');
+            // Saat masuk halaman auth dari tombol ini, tampilkan tombol pilihan dan submenu email default
+            if (showEmailAuthButton) showEmailAuthButton.style.display = 'block';
+            if (showPhoneAuthButton) showPhoneAuthButton.style.display = 'block';
+            showAuthSubmenu('email-auth-submenu');
+        });
+    }
+
 
     // Event listener untuk tombol tambah catatan
     if (addNoteButton) {
@@ -872,6 +891,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Tambahan khusus untuk halaman produk jika navigasi langsung
                     if (pageId === 'products') {
                         renderProductCategories();
+                    }
+                    // Jika navigasi ke halaman auth dari menu, pastikan tombol pilihan auth ditampilkan
+                    if (pageId === 'auth') {
+                        if (showEmailAuthButton) showEmailAuthButton.style.display = 'block';
+                        if (showPhoneAuthButton) showPhoneAuthButton.style.display = 'block';
+                        showAuthSubmenu('email-auth-submenu'); // Tampilkan email sebagai default
                     }
                 }
             });
