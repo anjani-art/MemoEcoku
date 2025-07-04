@@ -31,26 +31,29 @@ body {
 
 #app-container {
     width: 100%;
-    max-width: 800px; /* Lebar maksimum aplikasi */
+    max-width: 480px; /* Batasi lebar untuk tampilan seperti mobile app */
     background-color: var(--background-color);
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    position: relative; /* Penting untuk positioning anak-anak */
+    overflow: hidden; /* Memastikan konten tidak keluar dari container */
 }
 
-/* --- Header & Menu --- */
+/* --- Header Aplikasi --- */
 header {
     background-color: var(--card-background);
     color: var(--text-color);
     padding: 15px 20px;
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid var(--border-color);
-    position: sticky;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    position: sticky; /* Agar header tetap di atas saat scroll */
     top: 0;
-    z-index: 1000;
+    z-index: 50; /* Pastikan header di atas konten utama */
+    width: 100%; /* Memenuhi lebar parent */
 }
 
 header h1 {
@@ -59,37 +62,68 @@ header h1 {
     color: var(--primary-color);
 }
 
+/* --- Tombol Menu Toggle --- */
 #menu-toggle {
     background: none;
-    border: none;
+    border: none; /* Hapus border default button */
     color: var(--text-color);
-    font-size: 1.8em;
+    font-size: 1.8em; /* Ukuran ikon lebih besar */
     cursor: pointer;
-    padding: 5px;
-    transition: color 0.2s ease;
+    padding: 10px; /* Tambah padding untuk area klik */
+    outline: none; /* Hapus outline saat fokus */
+    display: flex; /* Untuk memposisikan ikon di tengah jika padding besar */
+    align-items: center;
+    justify-content: center;
+    width: 50px; /* Lebar eksplisit untuk area klik */
+    height: 50px; /* Tinggi eksplisit untuk area klik */
+    box-sizing: border-box; /* Pastikan padding tidak menambah ukuran */
 }
 
 #menu-toggle:hover {
     color: var(--primary-color);
 }
 
+
+/* --- Side Menu Navigasi --- */
 #side-menu {
     position: fixed;
     top: 0;
-    left: -250px; /* Sembunyikan di luar layar */
-    width: 250px;
+    right: -280px; /* Menyembunyikan di luar layar */
+    width: 280px;
     height: 100%;
     background-color: var(--card-background);
-    border-right: 1px solid var(--border-color);
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.4);
-    transition: left 0.3s ease-in-out;
-    z-index: 1001;
     padding-top: 60px; /* Ruang untuk header */
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.3);
+    transition: right 0.3s ease;
+    z-index: 100; /* Pastikan menu di atas konten */
 }
 
 #side-menu.active {
-    left: 0; /* Tampilkan saat aktif */
+    right: 0; /* Menampilkan menu */
 }
+
+/* Overlay saat menu aktif */
+#side-menu.active::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 99; /* Di belakang menu (100) tapi di atas konten lainnya */
+    transition: opacity 0.3s ease;
+    /* Tambahan untuk memastikan overlay tidak terlihat saat tidak aktif */
+    opacity: 0;
+    pointer-events: none; /* Nonaktifkan klik saat tidak aktif */
+}
+
+/* Pastikan overlay terlihat saat menu aktif */
+#side-menu.active::before {
+    opacity: 1;
+    pointer-events: auto; /* Aktifkan klik saat aktif */
+}
+
 
 #side-menu ul {
     list-style: none;
@@ -97,149 +131,216 @@ header h1 {
     margin: 20px 0;
 }
 
-#side-menu ul li a {
+#side-menu ul li {
+    margin-bottom: 5px;
+}
+
+#side-menu ul li a, #side-menu ul li #logout-button {
     display: block;
-    padding: 15px 20px;
+    padding: 12px 20px;
     color: var(--text-color);
     text-decoration: none;
     font-size: 1.1em;
     transition: background-color 0.2s ease, color 0.2s ease;
+    border-radius: 8px;
+    margin: 0 10px;
 }
 
-#side-menu ul li a i {
+#side-menu ul li a:hover, #side-menu ul li #logout-button:hover {
+    background-color: var(--border-color);
+    color: var(--primary-color);
+}
+
+#side-menu ul li a i, #side-menu ul li #logout-button i {
     margin-right: 10px;
-    color: var(--primary-color);
-}
-
-#side-menu ul li a:hover {
-    background-color: var(--background-color);
-    color: var(--primary-color);
+    width: 20px; /* Lebar ikon tetap */
+    text-align: center;
 }
 
 #close-menu {
     position: absolute;
     top: 15px;
-    right: 15px;
+    right: 20px;
     background: none;
     border: none;
     color: var(--text-color);
     font-size: 1.8em;
     cursor: pointer;
-    transition: color 0.2s ease;
+    padding: 5px;
+    outline: none;
 }
 
 #close-menu:hover {
     color: var(--error-color);
 }
 
-/* --- Main Content & Pages --- */
+/* --- Konten Utama Aplikasi --- */
 main {
-    flex-grow: 1;
+    flex-grow: 1; /* Memenuhi sisa ruang vertikal */
     padding: 20px;
-    position: relative; /* Penting untuk penempatan halaman */
-    min-height: calc(100vh - 70px); /* Ketinggian minimal dikurangi header */
+    overflow-y: auto; /* Izinkan scroll jika konten lebih panjang */
+    -webkit-overflow-scrolling: touch; /* Untuk smooth scrolling di iOS */
 }
 
 .page {
-    display: none;
-    padding: 10px 0;
-    animation: fadeIn 0.5s ease-out; /* Efek transisi antar halaman */
+    display: none; /* Semua halaman tersembunyi secara default */
+    padding-bottom: 20px; /* Ruang di bawah konten */
 }
 
 .page.active {
-    display: block;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    display: block; /* Halaman aktif ditampilkan */
 }
 
 .page-header {
     display: flex;
     align-items: center;
     margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
 }
 
 .page-header h2 {
     margin: 0;
     color: var(--primary-color);
-    font-size: 1.8em;
+    font-size: 1.6em;
     flex-grow: 1;
-    text-align: center;
 }
 
-.page-header .back-button {
+.back-button {
     background: none;
     border: none;
-    color: var(--text-color);
+    color: var(--text-color-light);
     font-size: 1.5em;
     cursor: pointer;
+    margin-right: 15px;
     padding: 5px;
-    margin-right: 10px;
-    transition: color 0.2s ease;
+    border-radius: 50%; /* Bentuk lingkaran */
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.page-header .back-button:hover {
+.back-button:hover {
+    background-color: var(--border-color);
     color: var(--primary-color);
 }
 
-/* --- Style Umum untuk Form & Input --- */
+/* --- Halaman Selamat Datang (Welcome Guest Page) --- */
+#welcome-guest-page {
+    text-align: center;
+    padding-top: 50px;
+    display: flex; /* Untuk center konten vertikal */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 100px); /* Sesuaikan tinggi halaman */
+}
+
+#welcome-guest-page .welcome-content {
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    max-width: 350px;
+    width: 100%;
+}
+
+#welcome-guest-page h2 {
+    color: var(--primary-color);
+    margin-top: 0;
+    font-size: 2em;
+}
+
+#welcome-guest-page p {
+    color: var(--text-color-light);
+    font-size: 1.1em;
+    margin-bottom: 20px;
+}
+
+
+/* --- Halaman Autentikasi --- */
+#auth-page {
+    text-align: center;
+    padding-top: 20px;
+}
+
+#auth-method-selection button {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+    border: none;
+    padding: 10px 20px;
+    margin: 0 5px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+}
+
+#auth-method-selection button:hover {
+    background-color: #1aa6c4;
+}
+
+.auth-submenu {
+    display: none; /* Sembunyikan secara default */
+    padding: 20px;
+    background-color: var(--card-background);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    max-width: 350px;
+    margin: 0 auto;
+}
+
+.auth-submenu.active {
+    display: block;
+}
+
 .form-group {
     margin-bottom: 15px;
+    text-align: left;
 }
 
 .form-group label {
     display: block;
     margin-bottom: 5px;
     color: var(--text-color-light);
-    font-size: 0.95em;
 }
 
-.form-group input[type="email"],
-.form-group input[type="password"],
-.form-group input[type="tel"],
-.form-group input[type="text"],
-.form-group input[type="number"],
-.form-group select,
-.form-group textarea {
-    width: calc(100% - 20px); /* Kurangi padding */
-    padding: 12px 10px;
+.form-group input, .form-group select {
+    width: calc(100% - 20px); /* Kurangi padding untuk lebar penuh */
+    padding: 10px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     background-color: var(--background-color);
     color: var(--text-color);
     font-size: 1em;
-    outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(33, 212, 253, 0.3);
-}
-
-.button-primary,
-.button-secondary {
-    display: block;
-    width: 100%;
-    padding: 12px 15px;
-    border: none;
+#recaptcha-container {
+    margin: 15px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     border-radius: 8px;
-    font-size: 1em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s ease, color 0.2s ease;
-    text-align: center;
-    text-decoration: none;
-    margin-top: 10px; /* Jarak antar tombol */
+    overflow: hidden; /* Pastikan reCAPTCHA tidak meluber */
+}
+
+#otp-input-group {
+    display: none; /* Sembunyikan sampai OTP dikirim */
+    margin-top: 20px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
 }
 
 .button-primary {
     background-color: var(--primary-color);
     color: var(--background-color);
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    margin-top: 10px;
+    transition: background-color 0.2s ease;
+    width: 100%;
+    box-sizing: border-box; /* Include padding in width */
 }
 
 .button-primary:hover {
@@ -247,119 +348,54 @@ main {
 }
 
 .button-secondary {
-    background-color: var(--card-background);
-    color: var(--primary-color);
-    border: 1px solid var(--primary-color);
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    border: 1px solid var(--secondary-color);
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    margin-top: 10px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .button-secondary:hover {
-    background-color: var(--primary-color);
+    background-color: var(--secondary-color);
     color: var(--background-color);
 }
 
 .message {
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    text-align: center;
-    font-weight: bold;
+    margin-top: 10px;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 0.9em;
 }
 
-.message.error {
-    background-color: rgba(244, 67, 54, 0.2);
-    color: var(--error-color);
-}
-
-.message.success {
-    background-color: rgba(76, 175, 80, 0.2);
-    color: var(--success-color);
-}
-
-/* --- Halaman Autentikasi --- */
-#auth-page {
-    max-width: 400px;
-    margin: 50px auto;
-    padding: 25px;
-    background-color: var(--card-background);
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    text-align: center;
-}
-
-#auth-page h2 {
-    color: var(--primary-color);
-    margin-bottom: 25px;
-    font-size: 2em;
-}
-
-#auth-method-selection {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    justify-content: center;
-}
-
-#auth-method-selection button {
-    flex: 1;
-    background-color: var(--background-color);
-    border: 1px solid var(--primary-color);
-    color: var(--primary-color);
-    padding: 10px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-#auth-method-selection button.active,
-#auth-method-selection button:hover {
-    background-color: var(--primary-color);
-    color: var(--background-color);
-}
-
-.auth-submenu {
-    display: none; /* Sembunyikan secara default */
-    padding: 10px 0;
-}
-
-.auth-submenu.active {
-    display: block; /* Tampilkan jika aktif */
-}
-
-#otp-input-group {
-    display: none; /* Sembunyikan input OTP sampai OTP dikirim */
-    margin-top: 15px;
-}
-
-#recaptcha-container {
-    margin: 20px auto;
-    display: flex;
-    justify-content: center;
-}
-
-/* --- Halaman Beranda (Home) --- */
+/* --- Halaman Beranda --- */
 #home-page h2 {
-    text-align: center;
-    margin-bottom: 25px;
+    color: var(--primary-color);
+    font-size: 1.8em;
+    margin-bottom: 10px;
 }
 
-#welcome-message {
-    text-align: center;
-    margin-bottom: 30px;
-    font-size: 1.1em;
+#home-page #welcome-message {
     color: var(--text-color-light);
+    font-size: 1.1em;
+    margin-bottom: 30px;
 }
 
-#home-page .card-grid {
+.card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 20px;
     margin-top: 20px;
 }
 
-#home-page .card {
+.card {
     background-color: var(--card-background);
-    padding: 20px;
+    padding: 25px;
     border-radius: 12px;
     text-align: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
@@ -367,323 +403,295 @@ main {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-#home-page .card:hover {
+.card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
-#home-page .card i {
-    font-size: 2.5em;
+.card i {
+    font-size: 3em;
     color: var(--primary-color);
     margin-bottom: 15px;
 }
 
-#home-page .card h3 {
+.card h3 {
     margin: 0;
-    font-size: 1.1em;
     color: var(--text-color);
+    font-size: 1.2em;
 }
 
 /* --- Halaman Catatan & Pengingat --- */
-#notes-page .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 10px;
-}
-
-#notes-page .section-header h3 {
-    margin: 0;
-    color: var(--primary-color);
-    font-size: 1.3em;
-}
-
-#notes-page .add-note-section {
+.add-note-section {
     background-color: var(--card-background);
     padding: 20px;
     border-radius: 12px;
-    margin-bottom: 30px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    margin-bottom: 30px;
 }
 
-#notes-page .note-input-group {
+.add-note-section h3 {
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.note-input-group {
     display: flex;
     gap: 10px;
 }
 
-#notes-page .note-input-group textarea {
+#note-text {
     flex-grow: 1;
-    resize: vertical;
-    min-height: 60px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-size: 1em;
+    min-height: 80px; /* Tinggi minimum textarea */
+    resize: vertical; /* Izinkan resize vertikal */
 }
 
-#notes-page .note-input-group button {
+#add-note-button {
     background-color: var(--primary-color);
     color: var(--background-color);
     border: none;
-    border-radius: 8px;
     padding: 10px 15px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1.2em;
+    font-size: 1.5em;
     transition: background-color 0.2s ease;
 }
 
-#notes-page .note-input-group button:hover {
+#add-note-button:hover {
     background-color: #1aa6c4;
 }
 
 .note-list-container {
-    margin-top: 20px;
+    margin-top: 30px;
+}
+
+.section-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+.section-header h3 {
+    color: var(--text-color);
+    margin: 0;
+    font-size: 1.4em;
 }
 
 .note-item {
     background-color: var(--card-background);
     padding: 15px;
-    margin-bottom: 10px;
     border-radius: 8px;
+    margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    border: 1px solid transparent;
-    transition: border-color 0.2s ease;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .note-item.pinned {
-    border-color: var(--accent-color);
-    box-shadow: 0 4px 10px rgba(33, 212, 253, 0.3);
+    border-left: 5px solid var(--secondary-color);
 }
 
-.note-item .note-content {
+.note-content {
     flex-grow: 1;
     margin: 0;
     color: var(--text-color);
+    font-size: 1em;
 }
 
-.note-item .note-actions {
+.note-actions {
     display: flex;
-    gap: 8px;
+    gap: 10px;
+    margin-left: 15px;
 }
 
-.note-item .note-actions button {
+.note-actions button {
     background: none;
     border: none;
-    font-size: 1.1em;
     cursor: pointer;
     color: var(--text-color-light);
+    font-size: 1.2em;
     transition: color 0.2s ease;
+    padding: 5px; /* Tambahkan padding agar lebih mudah diklik */
+    border-radius: 5px;
 }
 
-.note-item .note-actions .pin-button .pinned {
-    color: var(--accent-color); /* Warna pin jika sudah disematkan */
-}
-
-.note-item .note-actions .delete-button:hover {
-    color: var(--error-color);
-}
-
-.note-item .note-actions .pin-button:hover {
+.note-actions button:hover {
     color: var(--primary-color);
+}
+
+.note-actions .pin-button .pinned {
+    color: var(--secondary-color); /* Warna pin saat aktif */
+}
+
+.note-actions .delete-button:hover {
+    color: var(--error-color);
 }
 
 .empty-message {
     text-align: center;
     color: var(--text-color-light);
-    padding: 20px;
-    background-color: var(--card-background);
-    border-radius: 8px;
     margin-top: 20px;
+    font-style: italic;
 }
-
 
 /* --- Halaman Keuangan Berkelanjutan --- */
-#finance-page .summary-cards {
+.summary-cards {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     gap: 15px;
-    margin-bottom: 25px;
+    margin-bottom: 30px;
 }
 
-#finance-page .summary-card {
+.summary-card {
     background-color: var(--card-background);
     padding: 15px;
-    border-radius: 10px;
-    text-align: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-}
-
-#finance-page .summary-card h4 {
-    margin-top: 0;
-    margin-bottom: 8px;
-    font-size: 0.95em;
-    color: var(--text-color-light);
-}
-
-#finance-page .summary-card p {
-    margin: 0;
-    font-size: 1.3em;
-    font-weight: bold;
-    color: var(--primary-color);
-}
-
-#finance-page .summary-card.income p {
-    color: var(--success-color);
-}
-
-#finance-page .summary-card.expense p {
-    color: var(--error-color);
-}
-
-#finance-page .summary-card.balance p {
-    color: var(--accent-color);
-}
-
-#finance-page .add-transaction-section {
-    background-color: var(--card-background);
-    padding: 20px;
     border-radius: 12px;
-    margin-bottom: 30px;
+    text-align: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
-#finance-page .transaction-list-section h3 {
+.summary-card h4 {
+    margin: 0 0 10px;
+    color: var(--text-color-light);
+    font-size: 0.9em;
+    text-transform: uppercase;
+}
+
+.summary-card p {
+    margin: 0;
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.summary-card.income p {
+    color: var(--success-color);
+}
+
+.summary-card.expense p {
+    color: var(--error-color);
+}
+
+.summary-card.balance p {
+    color: var(--primary-color);
+}
+
+.add-transaction-section {
+    background-color: var(--card-background);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    margin-bottom: 30px;
+}
+
+.add-transaction-section h3 {
+    color: var(--primary-color);
     margin-top: 0;
     margin-bottom: 15px;
-    color: var(--primary-color);
-    font-size: 1.3em;
+}
+
+.transaction-list-section {
+    margin-top: 30px;
+}
+
+.transaction-list-section h3 {
+    color: var(--text-color);
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 10px;
+    margin-bottom: 20px;
 }
 
-#finance-page #transaction-list {
+#transaction-list {
     list-style: none;
     padding: 0;
-    max-height: 400px; /* Tinggi maksimum untuk scroll */
-    overflow-y: auto; /* Aktifkan scrollbar vertikal */
-    padding-right: 5px; /* Sedikit ruang untuk scrollbar */
-}
-
-#finance-page #transaction-list .empty-message {
-    background-color: transparent; /* override card background */
-    padding: 10px;
-    margin-top: 10px;
 }
 
 .transaction-item {
     background-color: var(--card-background);
     padding: 15px;
-    margin-bottom: 10px;
     border-radius: 8px;
+    margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    border-left: 5px solid; /* Warna border berdasarkan tipe */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .transaction-item.income {
-    border-left-color: var(--success-color);
+    border-left: 5px solid var(--success-color);
 }
 
 .transaction-item.expense {
-    border-left-color: var(--error-color);
+    border-left: 5px solid var(--error-color);
 }
 
-.transaction-item .transaction-details {
-    flex-grow: 1;
-}
-
-.transaction-item h4 {
+.transaction-details h4 {
     margin: 0;
     color: var(--text-color);
     font-size: 1.1em;
 }
 
-.transaction-item p {
+.transaction-details p {
     margin: 5px 0 0;
-    font-size: 0.85em;
     color: var(--text-color-light);
+    font-size: 0.85em;
 }
 
-.transaction-item .transaction-amount-display {
+.transaction-amount-display {
     font-weight: bold;
-    font-size: 1.1em;
-    margin-left: 10px;
-    white-space: nowrap; /* Pastikan tidak pecah baris */
+    font-size: 1.2em;
+    margin-left: auto; /* Dorong ke kanan */
+    margin-right: 15px;
 }
 
 .transaction-item.income .transaction-amount-display {
     color: var(--success-color);
 }
+
 .transaction-item.expense .transaction-amount-display {
-    color: var(--error-color);
-}
-
-.transaction-item .delete-button {
-    background: none;
-    border: none;
-    font-size: 1em;
-    cursor: pointer;
-    color: var(--text-color-light);
-    margin-left: 10px;
-    transition: color 0.2s ease;
-}
-
-.transaction-item .delete-button:hover {
     color: var(--error-color);
 }
 
 
 /* --- Halaman Saran Produk Go Green --- */
-#products-page h2,
-#product-list-page h2,
-#product-detail-page h2 {
-    text-align: center;
-    margin-bottom: 25px;
-    color: var(--primary-color);
-}
-
-#products-page p {
-    text-align: center;
-    color: var(--text-color-light);
-    margin-bottom: 30px;
-}
-
 .category-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* Menggunakan minmax untuk fleksibilitas */
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 20px;
     margin-top: 20px;
 }
 
 .category-card {
     background-color: var(--card-background);
-    padding: 20px;
+    padding: 25px;
     border-radius: 12px;
     text-align: center;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .category-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-    background-color: #1a202c; /* Sedikit lebih terang saat hover */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
 }
 
 .category-card i {
-    font-size: 2.8em;
+    font-size: 3em;
     color: var(--primary-color);
     margin-bottom: 15px;
 }
 
 .category-card h3 {
     margin: 0;
-    font-size: 1.15em;
     color: var(--text-color);
+    font-size: 1.2em;
 }
 
 .product-list {
@@ -692,23 +700,20 @@ main {
 
 .product-item {
     background-color: var(--card-background);
-    padding: 18px;
-    margin-bottom: 15px;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    transition: transform 0.2s ease;
 }
 
 .product-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.35);
-    background-color: #1a202c;
+    transform: translateX(5px);
 }
 
 .product-item h3 {
-    margin-top: 0;
-    margin-bottom: 8px;
+    margin: 0 0 5px;
     color: var(--primary-color);
     font-size: 1.3em;
 }
@@ -716,7 +721,7 @@ main {
 .product-item p {
     margin: 0;
     color: var(--text-color-light);
-    font-size: 0.95em;
+    font-size: 0.9em;
 }
 
 .product-detail {
@@ -767,47 +772,25 @@ main {
 
 /* --- Penyesuaian Responsif (untuk layar lebih besar) --- */
 @media (min-width: 768px) {
-    header {
-        padding: 15px 40px;
-    }
-
-    #menu-toggle {
-        display: none; /* Sembunyikan tombol menu pada desktop */
-    }
-
-    #side-menu {
-        position: static; /* Tetap terlihat pada desktop */
-        width: 200px;
-        height: auto;
-        border-right: none;
-        box-shadow: none;
-        padding-top: 0;
-        margin-right: 20px;
-    }
-
     #app-container {
-        flex-direction: row; /* Layout side-by-side */
-        min-height: 100vh;
-        max-width: 1200px; /* Lebih lebar untuk desktop */
+        border-radius: 12px;
+        height: 90vh; /* Tinggi tetap untuk layar lebih besar */
+        min-height: auto; /* Override min-height dari aturan sebelumnya */
+        margin: 20px 0; /* Memberi sedikit margin di atas/bawah */
+    }
+
+    header {
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
     }
 
     main {
-        flex-grow: 1;
-        padding: 20px;
-        min-height: calc(100vh - 30px); /* Sesuaikan tinggi minimal main */
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
     }
 
-    .page {
-        padding: 0;
-    }
-
-    #home-page .card-grid,
-    .category-grid,
-    #finance-page .summary-cards {
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Kolom lebih besar di desktop */
-    }
-
-    #auth-page {
-        margin-top: 100px;
+    #side-menu {
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
     }
 }
