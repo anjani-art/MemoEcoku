@@ -34,20 +34,20 @@ const authOtpInput = document.getElementById('auth-otp');
 const verifyOtpButton = document.getElementById('verify-otp-button');
 const authStatusMessage = document.getElementById('auth-status-message'); // Untuk pesan status login/error
 
-// BARU: Elemen untuk pemilihan metode autentikasi
+// Elemen untuk pemilihan metode autentikasi
 const showEmailAuthButton = document.getElementById('show-email-auth');
 const showPhoneAuthButton = document.getElementById('show-phone-auth');
 const emailAuthSubmenu = document.getElementById('email-auth-submenu');
 const phoneAuthSubmenu = document.getElementById('phone-auth-submenu');
 const userDisplayName = document.getElementById('user-display-name'); // Tambahkan ini untuk display nama user
 
-// BARU: Elemen untuk item menu login/logout
+// Elemen untuk item menu login/logout
 const loginMenuItem = document.getElementById('login-menu-item');
 const logoutMenuItem = document.getElementById('logout-menu-item');
 
-// BARU: Elemen untuk halaman welcome-guest
+// Elemen untuk halaman welcome-guest
 const welcomeGuestPage = document.getElementById('welcome-guest-page');
-const goToAuthButton = document.getElementById('go-to-auth-button');
+// const goToAuthButton = document.getElementById('go-to-auth-button'); // Tombol ini sudah dihapus dari HTML
 
 
 // Elemen UI Catatan
@@ -101,7 +101,7 @@ function showPage(pageId) {
     }
 }
 
-// BARU: Fungsi untuk menampilkan submenu autentikasi tertentu
+// Fungsi untuk menampilkan submenu autentikasi tertentu
 function showAuthSubmenu(submenuId) {
     // Sembunyikan semua submenu terlebih dahulu
     document.querySelectorAll('.auth-submenu').forEach(submenu => {
@@ -144,9 +144,9 @@ auth.onAuthStateChanged(user => {
     } else {
         currentUser = null;
         console.log('User signed out.');
-        // BARU: Arahkan ke halaman welcome-guest jika belum login
+        // Arahkan ke halaman welcome-guest jika belum login
         showPage('welcome-guest');
-        showAuthMessage('Silakan masuk atau daftar.', false);
+        showAuthMessage('Silakan masuk atau daftar.', false); // Pesan ini muncul di halaman auth saat diakses
         clearUserData(); // Bersihkan data lokal saat logout
 
         // Kontrol visibilitas menu samping
@@ -794,7 +794,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.page').forEach(page => {
         page.style.display = 'none'; 
     });
-    // BARU: Set halaman welcome-guest sebagai default yang terlihat di awal
+    // Set halaman welcome-guest sebagai default yang terlihat di awal
     if (welcomeGuestPage) {
         welcomeGuestPage.style.display = 'block';
         welcomeGuestPage.classList.add('active'); // Pastikan juga aktif
@@ -819,7 +819,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loginEmailButton.addEventListener('click', loginWithEmail);
     }
 
-    // BARU: Event listener untuk tombol pilihan autentikasi
+    // Event listener untuk tombol pilihan autentikasi
     if (showEmailAuthButton) {
         showEmailAuthButton.addEventListener('click', () => {
             showAuthSubmenu('email-auth-submenu');
@@ -838,16 +838,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // BARU: Event listener untuk tombol "Masuk atau Daftar" di halaman welcome-guest
-    if (goToAuthButton) {
-        goToAuthButton.addEventListener('click', () => {
-            showPage('auth');
-            // Saat masuk halaman auth dari tombol ini, tampilkan tombol pilihan dan submenu email default
-            if (showEmailAuthButton) showEmailAuthButton.style.display = 'block';
-            if (showPhoneAuthButton) showPhoneAuthButton.style.display = 'block';
-            showAuthSubmenu('email-auth-submenu');
-        });
-    }
+    // Event listener untuk tombol "Masuk atau Daftar" di halaman welcome-guest
+    // BAGIAN INI TIDAK AKAN DIEKSEKUSI KARENA TOMBOL SUDAH DIHAPUS DARI HTML
+    // if (goToAuthButton) {
+    //     goToAuthButton.addEventListener('click', () => {
+    //         showPage('auth');
+    //         if (showEmailAuthButton) showEmailAuthButton.style.display = 'block';
+    //         if (showPhoneAuthButton) showPhoneAuthButton.style.display = 'block';
+    //         showAuthSubmenu('email-auth-submenu');
+    //     });
+    // }
 
 
     // Event listener untuk tombol tambah catatan
@@ -950,7 +950,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Inisialisasi tampilan kategori produk saat halaman dimuat pertama kali
-    // (Ini akan dipanggil jika user pertama kali membuka aplikasi atau setelah logout)
     renderProductCategories();
 
     // Catatan: Panggilan `renderNotes()`, `calculateSummary()`, `renderTransactions()`
