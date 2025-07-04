@@ -41,6 +41,11 @@ const emailAuthSubmenu = document.getElementById('email-auth-submenu');
 const phoneAuthSubmenu = document.getElementById('phone-auth-submenu');
 const userDisplayName = document.getElementById('user-display-name'); // Tambahkan ini untuk display nama user
 
+// BARU: Elemen untuk item menu login/logout
+const loginMenuItem = document.getElementById('login-menu-item');
+const logoutMenuItem = document.getElementById('logout-menu-item');
+
+
 // Elemen UI Catatan
 const addNoteButton = document.getElementById('add-note-button');
 const noteTextInput = document.getElementById('note-text');
@@ -127,6 +132,10 @@ auth.onAuthStateChanged(user => {
         showAuthMessage(`Selamat datang, ${user.email || user.phoneNumber || 'Pengguna'}!`, false);
         showPage('home'); // Arahkan ke halaman utama setelah login
         loadUserData(currentUser.uid); // Muat data user
+
+        // BARU: Kontrol visibilitas menu samping
+        if (loginMenuItem) loginMenuItem.style.display = 'none'; // Sembunyikan 'Login/Daftar'
+        if (logoutMenuItem) logoutMenuItem.style.display = 'list-item'; // Tampilkan 'Logout'
     } else {
         currentUser = null;
         console.log('User signed out.');
@@ -138,6 +147,10 @@ auth.onAuthStateChanged(user => {
         if (showEmailAuthButton) showEmailAuthButton.style.display = 'block';
         if (showPhoneAuthButton) showPhoneAuthButton.style.display = 'block';
         showAuthSubmenu('email-auth-submenu'); // Tampilkan form email secara default
+
+        // BARU: Kontrol visibilitas menu samping
+        if (loginMenuItem) loginMenuItem.style.display = 'list-item'; // Tampilkan 'Login/Daftar'
+        if (logoutMenuItem) logoutMenuItem.style.display = 'none'; // Sembunyikan 'Logout'
     }
 });
 
@@ -849,17 +862,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Home category cards (perhatikan ID atau kelas yang digunakan di HTML)
     const homeCategoryCards = document.querySelectorAll('#home-page .card');
     document.querySelectorAll('#side-menu ul li a').forEach(element => {
-        element.addEventListener('click', (event) => {
-            event.preventDefault(); // Mencegah perilaku default link
-            const pageId = element.dataset.page;
-            if (pageId) {
-                showPage(pageId);
-                // Tambahan khusus untuk halaman produk jika navigasi langsung
-                if (pageId === 'products') {
-                    renderProductCategories();
+        // Hanya tambahkan event listener ke link navigasi biasa, bukan logout button
+        if (element.id !== 'logout-button') { 
+            element.addEventListener('click', (event) => {
+                event.preventDefault(); // Mencegah perilaku default link
+                const pageId = element.dataset.page;
+                if (pageId) {
+                    showPage(pageId);
+                    // Tambahan khusus untuk halaman produk jika navigasi langsung
+                    if (pageId === 'products') {
+                        renderProductCategories();
+                    }
                 }
-            }
-        });
+            });
+        }
     });
 
     if (homeCategoryCards) {
